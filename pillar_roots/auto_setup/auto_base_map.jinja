@@ -1,0 +1,16 @@
+## # build_dsig is YYYYMMDDhhmmnnnn
+## # branch_tag is either branch 2017.7 or tag v2017.7.1
+{% import "auto_setup/tag_build_dsig.jinja" as bd_cfg %}
+{% set build_dsig = bd_cfg.build_dsig  %}
+{% set branch_tag = bd_cfg.branch_tag  %}
+
+## generate branch build versions
+{% if branch_tag|first == 'v' %}
+{% set build_version_dotted = branch_tag|replace("v", "", 1) %}         ## 2017.7.1
+{% set build_version = build_version_dotted|replace(".", "_") %}        ## 2017_7_1
+{% set build_dest_dir = build_dsig %}
+{% else %}
+{% set build_version = branch_tag|replace(".", "_") %}                  ## 2017_7
+{% set build_dest_dir = build_version ~ build_dsig %}
+{% endif %}
+

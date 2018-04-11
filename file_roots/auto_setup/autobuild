@@ -1,0 +1,315 @@
+#!/bin/bash
+
+# ensure /srv/pillar/auto_setup/ exists
+# write pillar sls file with branch_tag and build_dsig in it
+# write new top.sls file containing it,
+# then everyone can get it from that sls file and pillar get
+
+## helper functions
+
+_timestamp() {
+    date "+%Y-%m-%d %H:%M:%S:"
+}
+
+_log() {
+    echo "$1" | sed "s/^/$(_timestamp) /" >>"${LOGGING}"
+}
+
+# Both echo and log
+_display() {
+    echo "$1"
+    _log "$1"
+}
+
+_error() {
+    msg="ERROR: $1"
+    echo "$msg" 1>&2
+    echo "$(_timestamp) $msg" >>"${LOGGING}"
+    echo "One or more errors found. See ${LOGGING} for details." 1>&2
+    exit 1
+}
+
+_warning() {
+    msg="WARNING: $1"
+    echo "$msg" 1>&2
+    echo "$(_timestamp) $msg" >>"${LOGGING}"
+}
+
+
+_usage() {
+    echo ""
+    echo "usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean] [-m|--minion <minion to use>]"
+    echo "             [-n|--named_branch <code named branch to build>] [-r|--web_minion <web server's minion>]"
+    echo "             [-p|--pack_branch <git named branch>] [-s|--specific_name <specific named version to produce>]"
+    echo "             [-u|--user <username for git salt and salt-pack>] [-v|--verbose]"
+    echo "             [-w|--web_user <user account on web server>] [-y|--web_host <hostname of web server>]"
+    echo "             [-z|--web_absdir <absolute directory on web server for build product>]"
+    echo ""
+    echo "  -b, --branch        git HEAD of branch for intended or specified major version, default 2017.7"
+    echo "                      if specific_name user is not used then, salt-pack branch version is used \(for example: nightly build\)"
+    echo "  -c, --clean         clean build, do not not use any dependencies already built for the branch, default not clean"
+##    echo "  -d, --debug     debug output enabled"
+    echo "  -g, --cloud-map     cloud map to overwrite default build minions to use, default '/etc/salt/cloud.map'"
+    echo "  -h, --help          this message"
+##    echo "  -l, --log       logging mode"
+    echo "  -k, --python3       Python version to build for, False Python2, True Python 3, default False"
+    echo "  -m, --minion        salt-minion installed on salt-master node to use for code checkout, default 'm7m'"
+    echo "  -n, --named_branch  git named branch for example: nitrogen, my_user_branch1, no default"
+    echo "  -p, --pack_branch   name of salt-pack branch to use, default develop"
+    echo "  -r, --web_minion    using user's web server's minion"
+    echo "  -s, --specific_name specifically named version to build, default dated autobuild, for example: rc1"
+    echo "  -t, --tag           build tagged release, for example: v2017.7.1 for specific release version,"
+    echo "                      if PyPI doesn't contain tag, then utilizes git tag"
+    echo "  -u, --user          username for git's salt and salt-pack,  and results web server account, default saltstack"
+    echo "                      Note: user's salt-pack changes should be against root for branch, for example: 2017.7"
+    echo "  -v, --verbose       verbose output"
+    echo "  -w, --web_user      using user's web server as repository for build products"
+    echo "  -y, --web_host      using user's web server hostname for repository for build products"
+    echo "  -z, --web_dir       using user's web server directory as repository for build products"
+    echo ""
+    echo "  creates specified packages for major platforms, signed with Salt testing keys"
+    echo "  dated by current start time of execution in YYYYMMDDhhmmnnnn format"
+    echo "  current platforms:"
+    echo "      Redhat 7 and 6"
+    echo "      Debian 9 and 8"
+    echo "      Raspbian 9 and 8"
+    echo "      Ubuntu 16.04 and 14.04"
+    echo ""
+    echo "  script expects node to contain salt-master with auto_setup installed and"
+    echo "  salt-minion installed on salt-master node, id 'm7m'"
+    echo ""
+}
+
+
+VERBOSE=0
+CLEAN_BLD=0
+DEBUG=False
+USAGE_HELP=false
+LOG_MODE='debug'
+ATTEMPT_PYPI=0
+RELEASE_TAG=''
+RELEASE_BRANCH='2017.7'
+RELEASE_CODE_NAMED_BRANCH=''
+RELEASE_SPECIFIC_NAME_BRANCH=''
+RELEASE_DSIG_BRANCH=''
+RELEASE_SPECIFIC_NAME_USER=''
+RELEASE_SPECIFIC_PACK_BRANCH=''
+PYTHON3_FLAG=False
+
+## Web Server Defaults, note req. match values in auto_base_map.jinja
+DEFAULT_WEB_MINION='bldressrv'
+DEFAULT_WEB_USER='root'
+DEFAULT_WEB_HOST='bld-res-server'
+DEFAULT_WEB_ABSDIR='/build_res/autobuild'
+
+WEB_MINION="${DEFAULT_WEB_MINION}"
+WEB_USER="${DEFAULT_WEB_USER}"
+WEB_HOST="${DEFAULT_WEB_HOST}"
+WEB_ABSDIR="${DEFAULT_WEB_ABSDIR}"
+
+CLOUD_MAP=''
+
+## minion resident on Salt-Master node
+CODE_MINION='m7m'
+
+
+##    -d | --debug )  DEBUG=True; shift ;;
+##    -l | --log )  LOG_MODE="$2"; shift 2 ;;
+
+## not validating input branch tag, format v2017.7.1 or 2017.7
+BRANCH_TAG=''
+
+while true; do
+  case "${1}" in
+    -b | --branch ) RELEASE_BRANCH="$2"; shift 2 ;;
+    -c | --clean ) CLEAN_BLD=1; shift ;;
+    -g | --cloud_map ) CLOUD_MAP="$2"; shift 2 ;;
+    -h | --help ) USAGE_HELP=true; shift ;;
+    -k | --python3 ) PYTHON3_FLAG=True; shift ;;
+    -m | --minion ) CODE_MINION="$2"; shift 2 ;;
+    -n | --named_branch ) RELEASE_CODE_NAMED_BRANCH="$2"; shift 2 ;;
+    -p | --pack_branch) RELEASE_SPECIFIC_PACK_BRANCH="$2"; shift 2 ;;
+    -r | --web_minion ) WEB_MINION="$2"; shift 2 ;;
+    -s | --specific_name) RELEASE_SPECIFIC_NAME_BRANCH="$2"; shift 2 ;;
+    -t | --tag ) RELEASE_TAG="$2"; ATTEMPT_PYPI=1; shift 2 ;;
+    -u | --username) RELEASE_SPECIFIC_NAME_USER="$2"; shift 2 ;;
+    -v | --verbose ) VERBOSE=1; shift ;;
+    -w | --web_user ) WEB_USER="$2"; shift 2 ;;
+    -y | --web_host ) WEB_HOST="$2"; shift 2 ;;
+    -z | --web_absdir ) WEB_ABSDIR="$2"; shift 2 ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+## check if want help, display usage and exit
+[[ ${USAGE_HELP} = 'false' ]] || {
+  _usage
+  exit 0
+}
+
+
+## input version tag overrides use of branch if present
+[[ -z "${RELEASE_TAG}" ]] && BRANCH_TAG="${RELEASE_BRANCH}" || BRANCH_TAG="${RELEASE_TAG}"
+
+##  MAIN BODY OF SCRIPT
+
+## build designation tag used for auto builds is YearMontDayHourMinuteSecondMicrosecond aka jid
+date_long=$(date +%Y%m%d%H%M%S%N)
+curr_date="${date_long::-2}"
+APT_DATE="$(date +"%a, %d %b %Y %T %z")"
+RPM_DATE="$(date +"%a %b %d %Y")"
+
+CURRDIR=$(pwd)
+
+PILLAR_DIR='/srv/pillar'
+PILLAR_AUTO_SETUP_DIR="auto_setup"
+PILLAR_AUTO_SETUP_TAG_ABSFILE="${PILLAR_DIR}/${PILLAR_AUTO_SETUP_DIR}/tag_build_dsig.jinja"
+
+if [[ ! -d "${PILLAR_DIR}/${PILLAR_AUTO_SETUP_DIR}" ]]; then
+    echo "Missing vital directory ${PILLAR_DIR}/${PILLAR_AUTO_SETUP_DIR}, ensure system is correctly setup before proceeding"
+    exit 1
+fi
+
+## ensure building designation is set for pillar data
+if [[ -z ${RELEASE_SPECIFIC_NAME_BRANCH} ]]; then
+    if [[ -n ${RELEASE_TAG} ]]; then
+        RELEASE_DSIG_BRANCH=$(echo "${RELEASE_TAG}" | sed 's/v//')
+    else
+        RELEASE_DSIG_BRANCH="nb${curr_date}"
+    fi
+else
+    RELEASE_DSIG_BRANCH=${RELEASE_SPECIFIC_NAME_BRANCH}
+fi
+
+
+cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set branch_tag = '${BRANCH_TAG}' %}
+{% set build_dsig = '${RELEASE_DSIG_BRANCH}' %}
+{% set build_local_minion = '${CODE_MINION}' %}
+{% set web_minion = '${WEB_MINION}' %}
+{% set web_user = '${WEB_USER}' %}
+{% set web_host = '${WEB_HOST}' %}
+{% set web_absdir = '${WEB_ABSDIR}' %}
+{% set build_apt_date = '${APT_DATE}' %}
+{% set build_rpm_date = '${RPM_DATE}' %}
+{% set build_py3 = ${PYTHON3_FLAG} %}
+@EOF
+
+if [[ ${CLEAN_BLD} -ge 1 ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set build_clean = '${CLEAN_BLD}' %}
+@EOF
+fi
+
+if [[ -n "${RELEASE_CODE_NAMED_BRANCH}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set code_named_branch_tag = '${RELEASE_CODE_NAMED_BRANCH}' %}
+@EOF
+fi
+
+if [[ -n "${RELEASE_SPECIFIC_NAME_BRANCH}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set specific_name_branch_tag = '${RELEASE_SPECIFIC_NAME_BRANCH}' %}
+@EOF
+fi
+
+if [[ -n "${RELEASE_SPECIFIC_NAME_USER}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set specific_name_user = '${RELEASE_SPECIFIC_NAME_USER}' %}
+@EOF
+fi
+
+if [[ -n "${RELEASE_SPECIFIC_PACK_BRANCH}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set specific_pack_branch = '${RELEASE_SPECIFIC_PACK_BRANCH}' %}
+@EOF
+fi
+
+if [[ -n "${CLOUD_MAP}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set build_cloud_map = '${CLOUD_MAP}' %}
+@EOF
+fi
+
+
+# set logging infomation
+## want verbose while developing
+LOGGING="/dev/null"
+
+SCRIPTNAME=$(basename "$0")
+
+## log_file_format="${CURRDIR}/$0-${curr_date}.log"
+## log_file_format="/var/log/salt/$SCRIPTNAME-${curr_date}.log"
+## log_file="`date \"+${log_file_format}\"`"
+log_file="/var/log/salt/$SCRIPTNAME-${curr_date}.log"
+
+if [[ ${VERBOSE} -ne 0 ]];then
+    LOGGING="${log_file}"
+else
+    LOGGING="/dev/null"
+fi
+
+
+_display "$SCRIPTNAME: autobuild started"
+
+
+salt ${CODE_MINION} saltutil.refresh_pillar || {
+    _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+if [[ "${WEB_USER}" != "{DEFAULT_WEB_USER}" ]];then
+salt ${CODE_MINION} state.sls auto_setup.nginx.masterside_nginx_files || {
+    _error "$SCRIPTNAME:state for auto_setup Masterside Nginx files failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+salt ${WEB_MINION} state.sls auto_setup.nginx || {
+    _error "$SCRIPTNAME:state for auto_setup Nginx install failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
+fi
+
+salt ${CODE_MINION} state.sls auto_setup.setup_rsakeys || {
+    _warning "$SCRIPTNAME:state for auto_setup rsakeys either generated rsakeys for first time or failed generating rsakeys for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+salt ${WEB_MINION} state.sls auto_setup.setup_bldressrv_rsakeys || {
+    _error "$SCRIPTNAME:state for auto_setup copy public rsa key to web server authorized keys install failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
+    _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+
+salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
+    _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+salt ${CODE_MINION} state.sls auto_setup || {
+    _error "$SCRIPTNAME:state for auto_setup failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+salt ${CODE_MINION} state.sls auto_setup.setup_vault || {
+    _error "$SCRIPTNAME:state for auto_setup vault keys for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+salt ${CODE_MINION} state.sls auto_setup.setup_keyid || {
+    _error "$SCRIPTNAME:state for auto_setup keyid from vault for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+_display "$SCRIPTNAME: autobuild checked out and modified salt from '${BRANCH_TAG}' and about to build via orchstration"
+
+_display "$SCRIPTNAME: autobuild ensure build minions are up and running"
+
+salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
+    _error "$SCRIPTNAME:state for auto_setup failed to setup cloud for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+_display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
+salt-run state.orchestrate auto_setup.orch.build_for_minions || {
+    _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
+}
+_display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
+
+_display "$SCRIPTNAME: autobuild finished"
+
