@@ -1,0 +1,85 @@
+{% set build_runas = pillar.get('build_runas', 'root') %}
+
+# autobuild build_dsig (designation) is passed on command line
+{% set build_dsig = pillar.get('build_dsig', 'nb197001010001') %}
+
+# branch_tag is either branch 2017.7 or tag v2017.7.1
+# if tag then assume specifc version
+{% set branch_tag = pillar.get('branch_tag', 'develop') %}
+
+# get build clean or with currently build dependencies, default not clean
+{% set build_clean = pillar.get('build_clean', 0 ) %}
+
+{% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
+
+
+## Web Server values
+{% set minion_bldressrv             = pillar.get('web_minion', 'bldressrv') %}
+{% set minion_bldressrv_username    = pillar.get('web_user', 'root') %}
+{% set minion_bldressrv_hostname    = pillar.get('web_host', 'bld-res-server') %}
+{% set minion_bldressrv_rootdir     = pillar.get('web_absdir', '/build_res/autobuild') %}
+
+
+## generate build labels
+{% set curr_dev_tag = '0' %}
+
+## generate branch build versions
+{% if branch_tag|first == 'v' %}
+{% set build_specific_tag = true %}                                                 ## specific version v2017.7.1
+{% set build_version_full_dotted = branch_tag|replace("v", "", 1) %}                ## 2017.7.1
+{% set build_version = build_version_full_dotted|replace(".", "_") %}               ## 2017_7_1
+{% else %}
+{% set build_specific_tag = false %}                                                ## branch 2017.7
+{% set build_version_full_dotted = branch_tag ~ '.' ~ curr_dev_tag %}               ## 2017.7
+{% set build_version = branch_tag|replace(".", "_") %}                              ## 2017_7
+{% endif %}
+
+{% set build_version_full_uscore = build_version_full_dotted|replace(".", "_") %}   ## 2017_7_1
+{% set build_version_list = build_version_full_dotted.split(".") %}                 ## generate list [ 2017, 7, 1 ]
+{% set build_year = build_version_list[0] %}                                        ## 2017.7.1 -> 2017
+{% set build_major_ver = build_version_list[1] %}                                   ## 2017.7.1 -> 11
+{% set build_minor_ver = build_version_list[2] %}                                   ## 2017.7.1 -> 1
+
+## produce dotted build version regardless of branch_tag
+{% set build_version_dotted = build_version|replace("_", ".") %}    ## 2017.7 or 2017.7.1
+
+{% set branch_checkout_tag = pillar.get('code_named_branch_tag', branch_tag) %}
+
+
+## Get the home and gpg keys directories to use, some tools assume ~/.gnupg
+{% if build_runas == 'root' %}
+{% set build_homedir = '/' ~ build_runas %}
+{% else %}
+{% set build_homedir = '/home/' ~ build_runas %}
+{% endif %}
+
+
+## gpg key directory
+{% set build_gpg_keydir = build_homedir ~ '/.gnupg' %}
+
+
+## salt code directory
+{% set build_salt_dir = build_homedir ~ '/salt_dir' %}
+{% set build_salt_pypi_dir = build_homedir ~ '/pypi_dir' %}
+{% set build_salt_pack_dir = build_homedir ~ '/salt_pack_dir' %}
+
+
+## rsa files
+## state file to setup public and private rsa keys for bld_res_server on minion
+## assumes user home /.ssh as destination directory
+## {#{% set rsa_priv_key_file = pillar.get('bld_res_server_id_rsa_priv_keyname', None) %}#}
+## {#{% set rsa_pub_key_file = 'bld_res_id_rsa.pub' %}#}
+
+{% set rsa_file_name = 'rsa_autobuild' %}
+{% set rsa_priv_key_file = rsa_file_name %}
+{% set rsa_pub_key_file =  rsa_file_name ~ '.pub' %}
+
+## {#{% set rsa_pub_key_source_file = 'salt://auto_setup/' ~ rsa_pub_key_file %}#}
+
+## need to make base /srv/salt not so hard-coded, this fine for now
+##{#{% set rsa_key_dir = build_homedir ~ '/.ssh' %}#}
+{% set rsa_key_dir = '/srv/salt' %}
+{% set rsa_pub_key_absfile = rsa_key_dir ~ '/' ~ rsa_pub_key_file %}
+{% set rsa_priv_key_absfile = rsa_key_dir ~ '/' ~ rsa_priv_key_file %}
+
+
