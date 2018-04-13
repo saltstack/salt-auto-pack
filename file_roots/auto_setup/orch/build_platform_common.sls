@@ -195,46 +195,25 @@ copy_redhat_7_base_subdir:
 {% endif %}
 
 
-copy_bldressrv_rsakeys_pub_to_{{minion_platform}}:
+ensure_bldresrv_nfs_dir_exists_{{minion_platform}}:
   salt.function:
-    - name: cp.get_file
-    - tgt: {{minion_tgt}}
+    - name: file.makedirs
+    - tgt: {{minion_tgt}}/
     - arg:
-      - salt://{{base_cfg.rsa_pub_key_file}}
-      - {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_pub_key_file}}
+      - {{base_cfg.minion_bldressrv_nfsrootdir}}
     - kwarg:
-        makedirs: True
+        user: nobody
+        group: nogroup
+        mode: 775
 
 
-copy_bldressrv_rsakeys_priv_to_{{minion_platform}}:
-  salt.function:
-    - name: cp.get_file
-    - tgt: {{minion_tgt}}
-    - arg:
-      - salt://{{base_cfg.rsa_priv_key_file}}
-      - {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}}
-    - kwarg:
-        makedirs: True
-
-
-chmod_bldressrv_rsakeys_priv_to_{{minion_platform}}:
+## TBD ipaddr for bld-res-server should be pulled from grains
+mount_bldressrv_nfs_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - chmod 600 {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}}
-
-
-build_bldressrv_basedir_exists_{{minion_platform}}:
-  salt.function:
-    - name: file.makedirs
-    - tgt: {{base_cfg.minion_bldressrv}}
-    - arg:
-      - {{web_server_archive_dir}}/
-    - kwarg:
-        user: {{base_cfg.minion_bldressrv_username}}
-        group: www-data
-        mode: 775
+      - mount 10.1.50.77:{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
 
 
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
@@ -259,7 +238,7 @@ cleanup_any_build_products_{{base_cfg.build_version}}_{{minion_platform}}:
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
       - salt: copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}
 {% else %}
-      - salt: build_bldressrv_basedir_exists_{{minion_platform}}
+      - salt: mount_bldressrv_nfs_{{minion_platform}}
 {% endif %}
 
 

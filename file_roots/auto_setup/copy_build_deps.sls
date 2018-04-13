@@ -88,11 +88,12 @@ ensure_saltstack_gpg_pub_key:
     - makedirs: True
     - preserve: True
 
+## {#        scp -i {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}} -o StrictHostKeyChecking='no' -p -r {{base_cfg.minion_bldressrv_username}}@{{base_cfg.minion_bldressrv_hostname}}:{{web_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/ #}
 
 copy_signed_deps:
   cmd.run:
     - name: |
-        scp -i {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}} -o StrictHostKeyChecking='no' -p -r {{base_cfg.minion_bldressrv_username}}@{{base_cfg.minion_bldressrv_hostname}}:{{web_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
+        cp -p -R {{web_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
     - require:
       - file: mkdir_deps_packages

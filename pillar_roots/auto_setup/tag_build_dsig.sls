@@ -5,10 +5,9 @@
 build_dsig: '{{bd_cfg.build_dsig }}'
 build_local_minion: '{{bd_cfg.build_local_minion}}'
 branch_tag: '{{bd_cfg.branch_tag}}'
-web_minion: '{{bd_cfg.web_minion}}'
-web_user: '{{bd_cfg.web_user}}'
-web_host: '{{bd_cfg.web_host}}'
-web_absdir: '{{bd_cfg.web_absdir}}'
+nfs_minion: '{{bd_cfg.nfs_minion}}'
+nfs_host: '{{bd_cfg.nfs_host}}'
+nfs_absdir: '{{bd_cfg.nfs_absdir}}'
 build_apt_date: "{{bd_cfg.build_apt_date}}"
 build_rpm_date: "{{bd_cfg.build_rpm_date}}"
 build_py3: {{bd_cfg.build_py3}}
@@ -30,8 +29,8 @@ specific_name_user: '{{bd_cfg.specific_name_user}}'
 specific_pack_branch: '{{bd_cfg.specific_pack_branch}}'
 {% endif %}
 
-{% if bd_cfg.user_web_server is defined %}
-user_web_server: '{{bd_cfg.user_web_server}}'
+{% if bd_cfg.user_nfs_server is defined %}
+user_nfs_server: '{{bd_cfg.user_nfs_server}}'
 {% endif %}
 
 {% if bd_cfg.build_cloud_map is defined %}
