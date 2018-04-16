@@ -1,7 +1,9 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
-# get minion target from pillar data
+# get minion target and nfs host from pillar data
 {% set minion_tgt = pillar.get('minion_tgt', 'UKNOWN-MINION') %}
+{% set nfs_host = pillar.get('nfs_host', 'UKNOWN-MINION')%}
+
 
 {% set null_dict = dict() %}
 {% set tgt_build_repo_dsig = 'UNKNOWN' %}
@@ -24,15 +26,15 @@
 {% set tgt_build_repo_dsig = 'yum' %}
 
 {% if my_tgt_os == 'amazon' %}
-    {% set tgt_build_os_name = my_tgt_os %}
-    {% set tgt_build_os_version = 'latest' %}
-    {% set tgt_build_release = 'amzn' %}
-    {% set tgt_build_arch = my_tgt_osarch %}
+{% set tgt_build_os_name = my_tgt_os %}
+{% set tgt_build_os_version = 'latest' %}
+{% set tgt_build_release = 'amzn' %}
+{% set tgt_build_arch = my_tgt_osarch %}
 {% else %}
-    {% set tgt_build_os_name = my_tgt_os_family %}
-    {% set tgt_build_os_version = my_tgt_osmajorrelease %}
-    {% set tgt_build_release = 'rhel' ~ my_tgt_osmajorrelease  %}
-    {% set tgt_build_arch = my_tgt_osarch %}
+{% set tgt_build_os_name = my_tgt_os_family %}
+{% set tgt_build_os_version = my_tgt_osmajorrelease %}
+{% set tgt_build_release = 'rhel' ~ my_tgt_osmajorrelease  %}
+{% set tgt_build_arch = my_tgt_osarch %}
 {% endif %}
 
 {% elif my_tgt_os_family == 'debian' and my_tgt_os == 'debian' %}
@@ -161,6 +163,7 @@
 {% endif %}
 
 
+
 refresh_pillars_{{minion_platform}}:
   salt.function:
     - name: saltutil.refresh_pillar
@@ -207,13 +210,12 @@ ensure_bldresrv_nfs_dir_exists_{{minion_platform}}:
         mode: 775
 
 
-## TBD ipaddr for bld-res-server should be pulled from grains
 mount_bldressrv_nfs_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - mount 10.1.50.77:{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
+      - mount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
 
 
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
@@ -306,5 +308,13 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
       - salt: update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}
+
+
+cleanup_mount_bldressrv_nfs_{{minion_platform}}:
+  salt.function:
+    - name: cmd.run
+    - tgt: {{minion_tgt}}
+    - arg:
+      - umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
 
 

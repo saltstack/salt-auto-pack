@@ -8,6 +8,7 @@ branch_tag: '{{bd_cfg.branch_tag}}'
 nfs_minion: '{{bd_cfg.nfs_minion}}'
 nfs_host: '{{bd_cfg.nfs_host}}'
 nfs_absdir: '{{bd_cfg.nfs_absdir}}'
+web_nfsdir: '{{bd_cfg.web_nfsdir}}'
 build_apt_date: "{{bd_cfg.build_apt_date}}"
 build_rpm_date: "{{bd_cfg.build_rpm_date}}"
 build_py3: {{bd_cfg.build_py3}}

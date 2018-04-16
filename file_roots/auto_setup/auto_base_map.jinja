@@ -16,9 +16,10 @@
 ## Web Server values
 {% set minion_bldressrv             = pillar.get('web_minion', 'bldressrv') %}
 {% set minion_bldressrv_username    = pillar.get('web_user', 'root') %}
-{% set minion_bldressrv_hostname    = pillar.get('web_host', 'bld-res-server') %}
-{% set minion_bldressrv_nfsrootdir  = pillar.get('nfs_absdir', '/build_res') %}
-{% set minion_bldressrv_rootdir     = minion_bldressrv_nfsrootdir ~ '/build_res/autobuild' %}
+{% set minion_bldressrv_hostname    = pillar.get('web_host') %}
+{% set minion_bldressrv_nfs_absdir  = pillar.get('nfs_absdir') %}
+{% set minion_bldressrv_nfsrootdir  = pillar.get('web_nfsdir') %}
+{% set minion_bldressrv_rootdir     = minion_bldressrv_nfsrootdir ~ '/autobuild' %}
 
 
 ## generate build labels
