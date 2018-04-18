@@ -16,8 +16,10 @@
 ## Web Server values
 {% set minion_bldressrv             = pillar.get('web_minion', 'bldressrv') %}
 {% set minion_bldressrv_username    = pillar.get('web_user', 'root') %}
-{% set minion_bldressrv_hostname    = pillar.get('web_host', 'bld-res-server') %}
-{% set minion_bldressrv_rootdir     = pillar.get('web_absdir', '/build_res/autobuild') %}
+{% set minion_bldressrv_hostname    = pillar.get('web_host') %}
+{% set minion_bldressrv_nfs_absdir  = pillar.get('nfs_absdir') %}
+{% set minion_bldressrv_nfsrootdir  = pillar.get('web_nfsdir') %}
+{% set minion_bldressrv_rootdir     = minion_bldressrv_nfsrootdir ~ '/autobuild' %}
 
 
 ## generate build labels
@@ -70,16 +72,16 @@
 ## {#{% set rsa_priv_key_file = pillar.get('bld_res_server_id_rsa_priv_keyname', None) %}#}
 ## {#{% set rsa_pub_key_file = 'bld_res_id_rsa.pub' %}#}
 
-{% set rsa_file_name = 'rsa_autobuild' %}
-{% set rsa_priv_key_file = rsa_file_name %}
-{% set rsa_pub_key_file =  rsa_file_name ~ '.pub' %}
+## {# {% set rsa_file_name = 'rsa_autobuild' %} #}
+## {# {% set rsa_priv_key_file = rsa_file_name %} #}
+## {# {% set rsa_pub_key_file =  rsa_file_name ~ '.pub' %} #}
 
 ## {#{% set rsa_pub_key_source_file = 'salt://auto_setup/' ~ rsa_pub_key_file %}#}
 
 ## need to make base /srv/salt not so hard-coded, this fine for now
 ##{#{% set rsa_key_dir = build_homedir ~ '/.ssh' %}#}
-{% set rsa_key_dir = '/srv/salt' %}
-{% set rsa_pub_key_absfile = rsa_key_dir ~ '/' ~ rsa_pub_key_file %}
-{% set rsa_priv_key_absfile = rsa_key_dir ~ '/' ~ rsa_priv_key_file %}
+## {# {% set rsa_key_dir = '/srv/salt' %} #}
+## {# {% set rsa_pub_key_absfile = rsa_key_dir ~ '/' ~ rsa_pub_key_file %} #}
+## {# {% set rsa_priv_key_absfile = rsa_key_dir ~ '/' ~ rsa_priv_key_file %} #}
 
 

@@ -1,7 +1,9 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
-# get minion target from pillar data
+# get minion target and nfs host from pillar data
 {% set minion_tgt = pillar.get('minion_tgt', 'UKNOWN-MINION') %}
+{% set nfs_host = pillar.get('nfs_host', 'UKNOWN-MINION')%}
+
 
 {% set null_dict = dict() %}
 {% set tgt_build_repo_dsig = 'UNKNOWN' %}
@@ -24,15 +26,15 @@
 {% set tgt_build_repo_dsig = 'yum' %}
 
 {% if my_tgt_os == 'amazon' %}
-    {% set tgt_build_os_name = my_tgt_os %}
-    {% set tgt_build_os_version = 'latest' %}
-    {% set tgt_build_release = 'amzn' %}
-    {% set tgt_build_arch = my_tgt_osarch %}
+{% set tgt_build_os_name = my_tgt_os %}
+{% set tgt_build_os_version = 'latest' %}
+{% set tgt_build_release = 'amzn' %}
+{% set tgt_build_arch = my_tgt_osarch %}
 {% else %}
-    {% set tgt_build_os_name = my_tgt_os_family %}
-    {% set tgt_build_os_version = my_tgt_osmajorrelease %}
-    {% set tgt_build_release = 'rhel' ~ my_tgt_osmajorrelease  %}
-    {% set tgt_build_arch = my_tgt_osarch %}
+{% set tgt_build_os_name = my_tgt_os_family %}
+{% set tgt_build_os_version = my_tgt_osmajorrelease %}
+{% set tgt_build_release = 'rhel' ~ my_tgt_osmajorrelease  %}
+{% set tgt_build_arch = my_tgt_osarch %}
 {% endif %}
 
 {% elif my_tgt_os_family == 'debian' and my_tgt_os == 'debian' %}
@@ -161,6 +163,7 @@
 {% endif %}
 
 
+
 refresh_pillars_{{minion_platform}}:
   salt.function:
     - name: saltutil.refresh_pillar
@@ -195,46 +198,40 @@ copy_redhat_7_base_subdir:
 {% endif %}
 
 
-copy_bldressrv_rsakeys_pub_to_{{minion_platform}}:
+ensure_bldresrv_nfs_dir_exists_{{minion_platform}}:
   salt.function:
-    - name: cp.get_file
+    - name: file.makedirs
     - tgt: {{minion_tgt}}
     - arg:
-      - salt://{{base_cfg.rsa_pub_key_file}}
-      - {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_pub_key_file}}
+      - {{base_cfg.minion_bldressrv_nfsrootdir}}/
     - kwarg:
-        makedirs: True
+        user: nobody
+        group: nogroup
+        mode: 775
 
 
-copy_bldressrv_rsakeys_priv_to_{{minion_platform}}:
-  salt.function:
-    - name: cp.get_file
-    - tgt: {{minion_tgt}}
-    - arg:
-      - salt://{{base_cfg.rsa_priv_key_file}}
-      - {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}}
-    - kwarg:
-        makedirs: True
-
-
-chmod_bldressrv_rsakeys_priv_to_{{minion_platform}}:
+mount_bldressrv_nfs_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - chmod 600 {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}}
+      - mount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
+    - require:
+      - salt: ensure_bldresrv_nfs_dir_exists_{{minion_platform}}
 
 
-build_bldressrv_basedir_exists_{{minion_platform}}:
+ensure_dest_dir_exists_{{minion_platform}}:
   salt.function:
     - name: file.makedirs
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_archive_dir}}/
     - kwarg:
-        user: {{base_cfg.minion_bldressrv_username}}
-        group: www-data
+        user: nobody
+        group: nogroup
         mode: 775
+    - require:
+      - salt: mount_bldressrv_nfs_{{minion_platform}}
 
 
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
@@ -245,7 +242,7 @@ copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}:
     - sls:
       - auto_setup.copy_build_deps
     - require:
-      - salt: build_bldressrv_basedir_exists_{{minion_platform}}
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
 {% endif %}
 
 
@@ -259,7 +256,7 @@ cleanup_any_build_products_{{base_cfg.build_version}}_{{minion_platform}}:
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
       - salt: copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}
 {% else %}
-      - salt: build_bldressrv_basedir_exists_{{minion_platform}}
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
 {% endif %}
 
 
@@ -292,7 +289,7 @@ sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
 remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.function:
     - name: file.remove
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
     - require:
@@ -302,7 +299,7 @@ remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
 update_current_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.function:
     - name: file.symlink
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_archive_dir}}
       - {{web_server_branch_symlink}}
@@ -311,7 +308,7 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
 update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
   salt.function:
     - name: file.lchown
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
       - {{base_cfg.minion_bldressrv_username}}
@@ -327,5 +324,13 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
       - salt: update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}
+
+
+cleanup_mount_bldressrv_nfs_{{minion_platform}}:
+  salt.function:
+    - name: cmd.run
+    - tgt: {{minion_tgt}}
+    - arg:
+      - umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
 
 
