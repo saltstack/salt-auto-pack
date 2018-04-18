@@ -39,11 +39,12 @@ _warning() {
 _usage() {
     echo ""
     echo "usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean] [-m|--minion <minion to use>]"
-    echo "             [-n|--named_branch <code named branch to build>] [-r|--web_minion <web server's minion>]"
+    echo "             [-n|--named_branch <code named branch to build>] [-r|--nfs_minion <nfs server's minion>]"
     echo "             [-p|--pack_branch <git named branch>] [-s|--specific_name <specific named version to produce>]"
     echo "             [-u|--user <username for git salt and salt-pack>] [-v|--verbose]"
-    echo "             [-w|--web_user <user account on web server>] [-y|--web_host <hostname of web server>]"
-    echo "             [-z|--web_absdir <absolute directory on web server for build product>]"
+    echo "             [-w|--web_nfsdir <root NFS directory on web server>"
+    echo "             [-y|--nfs_host <hostname of NFS server>]"
+    echo "             [-z|--nfs_absdir <absolute NFS directory on web server for build product>]"
     echo ""
     echo "  -b, --branch        git HEAD of branch for intended or specified major version, default 2017.7"
     echo "                      if specific_name user is not used then, salt-pack branch version is used \(for example: nightly build\)"
@@ -56,16 +57,16 @@ _usage() {
     echo "  -m, --minion        salt-minion installed on salt-master node to use for code checkout, default 'm7m'"
     echo "  -n, --named_branch  git named branch for example: nitrogen, my_user_branch1, no default"
     echo "  -p, --pack_branch   name of salt-pack branch to use, default develop"
-    echo "  -r, --web_minion    using user's web server's minion"
+    echo "  -r, --nfs_minion    using user's NFS server's minion"
     echo "  -s, --specific_name specifically named version to build, default dated autobuild, for example: rc1"
     echo "  -t, --tag           build tagged release, for example: v2017.7.1 for specific release version,"
     echo "                      if PyPI doesn't contain tag, then utilizes git tag"
     echo "  -u, --user          username for git's salt and salt-pack,  and results web server account, default saltstack"
     echo "                      Note: user's salt-pack changes should be against root for branch, for example: 2017.7"
     echo "  -v, --verbose       verbose output"
-    echo "  -w, --web_user      using user's web server as repository for build products"
-    echo "  -y, --web_host      using user's web server hostname for repository for build products"
-    echo "  -z, --web_dir       using user's web server directory as repository for build products"
+    echo "  -w, --web_nfsdir    root NFS directory on web server as repository for build products"
+    echo "  -y, --nfs_host      using user's NFS server hostname for repository for build products"
+    echo "  -z, --nfs_absdir    absolute NFS directory on NFS server for mounting web server root NFS directory, for example: /volume3"
     echo ""
     echo "  creates specified packages for major platforms, signed with Salt testing keys"
     echo "  dated by current start time of execution in YYYYMMDDhhmmnnnn format"
@@ -97,15 +98,15 @@ RELEASE_SPECIFIC_PACK_BRANCH=''
 PYTHON3_FLAG=False
 
 ## Web Server Defaults, note req. match values in auto_base_map.jinja
-DEFAULT_WEB_MINION='bldressrv'
-DEFAULT_WEB_USER='root'
-DEFAULT_WEB_HOST='bld-res-server'
-DEFAULT_WEB_ABSDIR='/build_res/autobuild'
+DEFAULT_NFS_MINION='bldressrv'
+DEFAULT_NFS_HOST='nas01.c7.saltstack.net'
+DEFAULT_NFS_ABSDIR='/volume3'
+DEFAULT_WEB_NFSDIR='/build_res'
 
-WEB_MINION="${DEFAULT_WEB_MINION}"
-WEB_USER="${DEFAULT_WEB_USER}"
-WEB_HOST="${DEFAULT_WEB_HOST}"
-WEB_ABSDIR="${DEFAULT_WEB_ABSDIR}"
+NFS_MINION="${DEFAULT_NFS_MINION}"
+NFS_HOST="${DEFAULT_NFS_HOST}"
+NFS_ABSDIR="${DEFAULT_NFS_ABSDIR}"
+WEB_NFSDIR="${DEFAULT_WEB_NFSDIR}"
 
 CLOUD_MAP=''
 
@@ -129,14 +130,14 @@ while true; do
     -m | --minion ) CODE_MINION="$2"; shift 2 ;;
     -n | --named_branch ) RELEASE_CODE_NAMED_BRANCH="$2"; shift 2 ;;
     -p | --pack_branch) RELEASE_SPECIFIC_PACK_BRANCH="$2"; shift 2 ;;
-    -r | --web_minion ) WEB_MINION="$2"; shift 2 ;;
+    -r | --nfs_minion ) NFS_MINION="$2"; shift 2 ;;
     -s | --specific_name) RELEASE_SPECIFIC_NAME_BRANCH="$2"; shift 2 ;;
     -t | --tag ) RELEASE_TAG="$2"; ATTEMPT_PYPI=1; shift 2 ;;
     -u | --username) RELEASE_SPECIFIC_NAME_USER="$2"; shift 2 ;;
     -v | --verbose ) VERBOSE=1; shift ;;
-    -w | --web_user ) WEB_USER="$2"; shift 2 ;;
-    -y | --web_host ) WEB_HOST="$2"; shift 2 ;;
-    -z | --web_absdir ) WEB_ABSDIR="$2"; shift 2 ;;
+    -w | --web_nfsdir ) WEB_NFSDIR="$2"; shift 2 ;;
+    -y | --nfs_host ) NFS_HOST="$2"; shift 2 ;;
+    -z | --nfs_absdir ) NFS_ABSDIR="$2"; shift 2 ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -182,15 +183,14 @@ else
     RELEASE_DSIG_BRANCH=${RELEASE_SPECIFIC_NAME_BRANCH}
 fi
 
-
 cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set branch_tag = '${BRANCH_TAG}' %}
 {% set build_dsig = '${RELEASE_DSIG_BRANCH}' %}
 {% set build_local_minion = '${CODE_MINION}' %}
-{% set web_minion = '${WEB_MINION}' %}
-{% set web_user = '${WEB_USER}' %}
-{% set web_host = '${WEB_HOST}' %}
-{% set web_absdir = '${WEB_ABSDIR}' %}
+{% set nfs_minion = '${NFS_MINION}' %}
+{% set nfs_host = '${NFS_HOST}' %}
+{% set nfs_absdir = '${NFS_ABSDIR}' %}
+{% set web_nfsdir = '${WEB_NFSDIR}' %}
 {% set build_apt_date = '${APT_DATE}' %}
 {% set build_rpm_date = '${RPM_DATE}' %}
 {% set build_py3 = ${PYTHON3_FLAG} %}
@@ -236,12 +236,7 @@ fi
 # set logging infomation
 ## want verbose while developing
 LOGGING="/dev/null"
-
 SCRIPTNAME=$(basename "$0")
-
-## log_file_format="${CURRDIR}/$0-${curr_date}.log"
-## log_file_format="/var/log/salt/$SCRIPTNAME-${curr_date}.log"
-## log_file="`date \"+${log_file_format}\"`"
 log_file="/var/log/salt/$SCRIPTNAME-${curr_date}.log"
 
 if [[ ${VERBOSE} -ne 0 ]];then
@@ -256,24 +251,6 @@ _display "$SCRIPTNAME: autobuild started"
 
 salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-if [[ "${WEB_USER}" != "{DEFAULT_WEB_USER}" ]];then
-salt ${CODE_MINION} state.sls auto_setup.nginx.masterside_nginx_files || {
-    _error "$SCRIPTNAME:state for auto_setup Masterside Nginx files failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-salt ${WEB_MINION} state.sls auto_setup.nginx || {
-    _error "$SCRIPTNAME:state for auto_setup Nginx install failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-}
-fi
-
-salt ${CODE_MINION} state.sls auto_setup.setup_rsakeys || {
-    _warning "$SCRIPTNAME:state for auto_setup rsakeys either generated rsakeys for first time or failed generating rsakeys for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-salt ${WEB_MINION} state.sls auto_setup.setup_bldressrv_rsakeys || {
-    _error "$SCRIPTNAME:state for auto_setup copy public rsa key to web server authorized keys install failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
 salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
