@@ -1,7 +1,10 @@
-# build_dsig (designation) is typically nbYYYYMMDDhhmmnnnn
-# unless overridden by a specific name version, e.g. rc1
-# branch_tag is either branch 2017.7 or tag v2017.7.1
-# defaults
-{% set build_dsig = 'nb197001010001' %}
-{% set branch_tag = 'develop' %}
-
+{% set branch_tag = '2018.3' %}
+{% set build_dsig = 'nb201804132100229785440' %}
+{% set build_local_minion = 'm7m' %}
+{% set nfs_minion = 'bldressrv' %}
+{% set nfs_host = 'nas01.c7.saltstack.net' %}
+{% set nfs_absdir = '/volume3' %}
+{% set web_nfsdir = '/build_res' %}
+{% set build_apt_date = 'Fri, 13 Apr 2018 21:00:22 +0000' %}
+{% set build_rpm_date = 'Fri Apr 13 2018' %}
+{% set build_py3 = False %}
