@@ -15,6 +15,7 @@
 {% if build_cloud_map == dflt_cloud_map %}
 {% set my_id = grains.get('id') %}
 {% set overwrite_cloud_map_dict = salt.cmd.run("salt " ~ my_id ~ " file.file_exists '" ~ dflt_cloud_map ~ "' -l quiet --out=json") | load_json %}
+
 {% if overwrite_cloud_map_dict[my_id] == True %}
 {% set overwrite_cloud_map = true %}
 {% else %}
@@ -28,8 +29,8 @@
 {% if overwrite_cloud_map == false %}
 
 remove_curr_providers:
-   file.absent:
-     - name: {{dflt_cloud_providers}}
+  file.absent:
+    - name: {{dflt_cloud_providers}}
 
 
 create_dflt_providers:
@@ -52,8 +53,8 @@ create_dflt_providers:
 
 
 remove_curr_profiles:
-   file.absent:
-     - name: {{dflt_cloud_profiles}}
+  file.absent:
+    - name: {{dflt_cloud_profiles}}
 
 
 create_dflt_profiles:
@@ -100,8 +101,8 @@ create_dflt_profiles:
 
 
 remove_curr_map:
-   file.absent:
-     - name: {{dflt_cloud_map}}
+  file.absent:
+    - name: {{dflt_cloud_map}}
 
 
 create_dflt_map:
@@ -115,7 +116,7 @@ create_dflt_map:
           - svc-builder-autotest-d9m
         svc-builder-u1604:
           - svc-builder-autotest-u16m
-{% if build_py3 == False %}
+{%- if build_py3 == False %}
         svc-builder-debian8:
           - svc-builder-autotest-d8m
         svc-builder-u1404:

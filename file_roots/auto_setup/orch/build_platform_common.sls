@@ -201,9 +201,9 @@ copy_redhat_7_base_subdir:
 ensure_bldresrv_nfs_dir_exists_{{minion_platform}}:
   salt.function:
     - name: file.makedirs
-    - tgt: {{minion_tgt}}/
+    - tgt: {{minion_tgt}}
     - arg:
-      - {{base_cfg.minion_bldressrv_nfsrootdir}}
+      - {{base_cfg.minion_bldressrv_nfsrootdir}}/
     - kwarg:
         user: nobody
         group: nogroup
@@ -216,6 +216,22 @@ mount_bldressrv_nfs_{{minion_platform}}:
     - tgt: {{minion_tgt}}
     - arg:
       - mount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
+    - require:
+      - salt: ensure_bldresrv_nfs_dir_exists_{{minion_platform}}
+
+
+ensure_dest_dir_exists_{{minion_platform}}:
+  salt.function:
+    - name: file.makedirs
+    - tgt: {{minion_tgt}}
+    - arg:
+      - {{web_server_archive_dir}}/
+    - kwarg:
+        user: nobody
+        group: nogroup
+        mode: 775
+    - require:
+      - salt: mount_bldressrv_nfs_{{minion_platform}}
 
 
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
@@ -226,7 +242,7 @@ copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}:
     - sls:
       - auto_setup.copy_build_deps
     - require:
-      - salt: build_bldressrv_basedir_exists_{{minion_platform}}
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
 {% endif %}
 
 
@@ -240,7 +256,7 @@ cleanup_any_build_products_{{base_cfg.build_version}}_{{minion_platform}}:
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
       - salt: copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}
 {% else %}
-      - salt: mount_bldressrv_nfs_{{minion_platform}}
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
 {% endif %}
 
 
@@ -273,7 +289,7 @@ sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
 remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.function:
     - name: file.remove
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
     - require:
@@ -283,7 +299,7 @@ remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
 update_current_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.function:
     - name: file.symlink
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_archive_dir}}
       - {{web_server_branch_symlink}}
@@ -292,7 +308,7 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
 update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
   salt.function:
     - name: file.lchown
-    - tgt: {{base_cfg.minion_bldressrv}}
+    - tgt: {{minion_tgt}}
     - arg:
       - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
       - {{base_cfg.minion_bldressrv_username}}
