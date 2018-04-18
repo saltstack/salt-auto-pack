@@ -99,8 +99,6 @@ PYTHON3_FLAG=False
 
 ## Web Server Defaults, note req. match values in auto_base_map.jinja
 DEFAULT_NFS_MINION='bldressrv'
-## DEFAULT_WEB_USER='root'
-## DEFAULT_NFS_HOST='bld-res-server'
 DEFAULT_NFS_HOST='nas01.c7.saltstack.net'
 DEFAULT_NFS_ABSDIR='/volume3'
 DEFAULT_WEB_NFSDIR='/build_res'
@@ -238,12 +236,7 @@ fi
 # set logging infomation
 ## want verbose while developing
 LOGGING="/dev/null"
-
 SCRIPTNAME=$(basename "$0")
-
-## log_file_format="${CURRDIR}/$0-${curr_date}.log"
-## log_file_format="/var/log/salt/$SCRIPTNAME-${curr_date}.log"
-## log_file="`date \"+${log_file_format}\"`"
 log_file="/var/log/salt/$SCRIPTNAME-${curr_date}.log"
 
 if [[ ${VERBOSE} -ne 0 ]];then
@@ -259,25 +252,6 @@ _display "$SCRIPTNAME: autobuild started"
 salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
-
-## TBD Now using NFS Server, hence prehaps we should leave nginx installation to other
-## if [[ "${WEB_USER}" != "{DEFAULT_WEB_USER}" ]];then
-## salt ${CODE_MINION} state.sls auto_setup.nginx.masterside_nginx_files || {
-##     _error "$SCRIPTNAME:state for auto_setup Masterside Nginx files failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-## }
-##
-## salt ${WEB_MINION} state.sls auto_setup.nginx || {
-##     _error "$SCRIPTNAME:state for auto_setup Nginx install failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-## }
-## fi
-
-## salt ${CODE_MINION} state.sls auto_setup.setup_rsakeys || {
-##     _warning "$SCRIPTNAME:state for auto_setup rsakeys either generated rsakeys for first time or failed generating rsakeys for '${BRANCH_TAG}', retcode '${$?}'";
-## }
-## 
-## salt ${WEB_MINION} state.sls auto_setup.setup_bldressrv_rsakeys || {
-##     _error "$SCRIPTNAME:state for auto_setup copy public rsa key to web server authorized keys install failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-## }
 
 salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
     _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
@@ -308,11 +282,11 @@ salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
     _error "$SCRIPTNAME:state for auto_setup failed to setup cloud for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
-## _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
-## salt-run state.orchestrate auto_setup.orch.build_for_minions || {
-##     _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
-## }
-## _display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
+_display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
+salt-run state.orchestrate auto_setup.orch.build_for_minions || {
+    _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
+}
+_display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
 
 _display "$SCRIPTNAME: autobuild finished"
 
