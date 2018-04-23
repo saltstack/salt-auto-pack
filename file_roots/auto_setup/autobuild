@@ -283,10 +283,20 @@ salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
 }
 
 _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
-salt-run state.orchestrate auto_setup.orch.build_for_minions || {
-    _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
-}
-_display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
+## salt-run state.orchestrate auto_setup.orch.build_for_minions || {
+##     _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
+## }
+## _display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
+
+# get list from salt-cloud and remove [ and ] on first and last line
+node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.opennebula | .opennebula | keys' | tail -n +2 | head -n -1)
+
+for ndx in ${node_list}
+do
+    nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
+    salt "${nx}" saltutil.refresh_grains
+    salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':${nx}}"
+done
 
 _display "$SCRIPTNAME: autobuild finished"
 
