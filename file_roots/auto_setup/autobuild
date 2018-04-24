@@ -295,7 +295,7 @@ for ndx in ${node_list}
 do
     nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
     salt "${nx}" saltutil.refresh_grains
-    salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':${nx}}"
+    salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
 done
 
 _display "$SCRIPTNAME: autobuild finished"
