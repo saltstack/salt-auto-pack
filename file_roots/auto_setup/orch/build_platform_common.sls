@@ -305,16 +305,6 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
       - {{web_server_branch_symlink}}
 
 
-update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
-  salt.function:
-    - name: file.lchown
-    - tgt: {{minion_tgt}}
-    - arg:
-      - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
-      - {{base_cfg.minion_bldressrv_username}}
-      - www-data
-
-
 copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
@@ -323,6 +313,28 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
       - auto_setup.copy_build_product
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: update_current_{{base_cfg.build_version}}_{{minion_platform}}
+
+
+update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
+  salt.function:
+    - name: file.lchown
+    - tgt: {{base_cfg.minion_bldressrv}}
+    - arg:
+      - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
+      - nobody
+      - nogroup
+    - require:
+      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+
+
+update_current_dir_{{base_cfg.build_version}}_mode_{{minion_platform}}:
+  salt.function:
+    - name: cmd.run
+    - tgt: {{base_cfg.minion_bldressrv}}
+    - arg:
+      - chown -R nobody:nogroup {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}/*
+    - require:
       - salt: update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}
 
 
