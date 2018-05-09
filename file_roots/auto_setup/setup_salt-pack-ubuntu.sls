@@ -40,7 +40,7 @@
 
 {% set spec_file_tarball = 'salt_ubuntu.tar.xz' %}
 
-{% set ubuntu_supported = ['ubuntu1604', 'ubuntu1404'] %}
+{% set ubuntu_supported = ['ubuntu1804', 'ubuntu1604', 'ubuntu1404'] %}
 
 {% for ubuntu_ver in ubuntu_supported %}
 
