@@ -66,28 +66,26 @@ create_dflt_profiles:
           provider: opennebula
           template: debian90-base-template
           image: debian90-base-image-v2
-          script_args: stable 2017.7.5
+        svc-builder-u1804:
+          provider: opennebula
+          template: ubuntu1804_base_packer_template
+          image: ubuntu1804-base-packer-2018050911351525887332
         svc-builder-u1604:
           provider: opennebula
           template: dgm_ubuntu1604_base_packer_template
           image: dgm_ubuntu1604_base_template-disk-2
-          script_args: stable 2017.7.5
         svc-builder-cent7:
           provider: opennebula
           template: svc-builder-centos7_base_packer_template
           image: centos7-base-packer-2017103110031509465834
-          script_args: stable 2017.7.5
         svc-builder-debian8:
           provider: opennebula
           template: svc-builder-debian8_base_packer_template
           image: svc-bld-debian8_base_template-disk-0
-          script_args: stable 2017.7.5
         svc-builder-u1404:
           provider: opennebula
           template: svc-builder-ubuntu1404_base_packer_template
           image: ubuntu1404-base-packer-2017103110011509465699
-          script_args: stable 2017.7.5
-        ##  script_args: stable 2016.11.8
         ## svc-builder-cent6:
         ##   provider: opennebula
         ##   template: svc-builder-centos6_base_packer_template
@@ -114,6 +112,8 @@ create_dflt_map:
           - svc-builder-autotest-c7m
         svc-builder-debian9:
           - svc-builder-autotest-d9m
+        svc-builder-u1804:
+          - svc-builder-autotest-u18m
         svc-builder-u1604:
           - svc-builder-autotest-u16m
 {%- if build_py3 == False %}

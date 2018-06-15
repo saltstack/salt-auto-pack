@@ -52,20 +52,6 @@
 
 {% set build_branch = base_cfg.build_version_dotted %}
 
-{% if base_cfg.build_specific_tag %}
-{% set nb_destdir = base_cfg.build_dsig %}
-{% else %}
-{% set nb_destdir = base_cfg.build_version ~ base_cfg.build_dsig %}
-{% endif %}
-
-## if Python 3 then override yum or apt
-{% if build_py3 %}
-{% set platform_pkg = 'py3' %}
-{% endif %}
-
-{% set web_server_base_dir = base_cfg.minion_bldressrv_rootdir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
-{% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
-
 mkdir_deps_packages:
   file.directory:
     - name: {{nb_srcdir}}
@@ -80,13 +66,13 @@ mkdir_deps_packages:
         - mode
 
 
-copy_signed_deps:
-  cmd.run:
-    - name: |
-        cp -p -R {{web_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
-    - runas: {{base_cfg.build_runas}}
-    - require:
-      - file: mkdir_deps_packages
+ensure_saltstack_gpg_pub_key:
+  file.managed:
+    - name: {{nb_srcdir}}/SALTSTACK-GPG-KEY.pub
+    - source: salt://{{slspath}}/SALTSTACK-GPG-KEY.pub
+    - force: True
+    - makedirs: True
+    - preserve: True
 
 
 
