@@ -234,6 +234,16 @@ ensure_dest_dir_exists_{{minion_platform}}:
       - salt: mount_bldressrv_nfs_{{minion_platform}}
 
 
+copy_pub_keys_for_packages_{{base_cfg.build_version}}_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.copy_pub_keys
+    - require:
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
+
+
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
 copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.state:
@@ -305,16 +315,6 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
       - {{web_server_branch_symlink}}
 
 
-update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
-  salt.function:
-    - name: file.lchown
-    - tgt: {{minion_tgt}}
-    - arg:
-      - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
-      - {{base_cfg.minion_bldressrv_username}}
-      - www-data
-
-
 copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
@@ -323,6 +323,28 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
       - auto_setup.copy_build_product
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: update_current_{{base_cfg.build_version}}_{{minion_platform}}
+
+
+update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
+  salt.function:
+    - name: file.lchown
+    - tgt: {{base_cfg.minion_bldressrv}}
+    - arg:
+      - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
+      - nobody
+      - nogroup
+    - require:
+      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+
+
+update_current_dir_{{base_cfg.build_version}}_mode_{{minion_platform}}:
+  salt.function:
+    - name: cmd.run
+    - tgt: {{base_cfg.minion_bldressrv}}
+    - arg:
+      - chown -R nobody:nogroup {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}/*
+    - require:
       - salt: update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}
 
 
