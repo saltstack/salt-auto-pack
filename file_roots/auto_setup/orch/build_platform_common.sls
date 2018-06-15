@@ -234,6 +234,16 @@ ensure_dest_dir_exists_{{minion_platform}}:
       - salt: mount_bldressrv_nfs_{{minion_platform}}
 
 
+copy_pub_keys_for_packages_{{base_cfg.build_version}}_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.copy_pub_keys
+    - require:
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
+
+
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
 copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.state:
