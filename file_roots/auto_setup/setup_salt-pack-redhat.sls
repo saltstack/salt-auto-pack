@@ -34,8 +34,8 @@
 {% set changelog_text = base_cfg.build_dsig ~ '-' ~ release_level %}
 {% else %}
 {% set release_level = '0' %}
-{% set pattern_text_date = 'tobereplaced_date' %}
-{% set replacement_text_date = base_cfg.build_dsig %}
+{% set pattern_text_date = 'tobereplaced_date' ~ '-' ~ release_level %}
+{% set replacement_text_date = base_cfg.build_dsig ~ '-' ~ release_level %}
 {% set changelog_text = default_branch_version_dotted ~ base_cfg.build_dsig ~ '-' ~ release_level %}
 {% endif %}
 
