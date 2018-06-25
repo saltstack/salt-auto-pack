@@ -198,8 +198,8 @@ adjust_branch_curr_salt_pack_rhel7_pkgbuild:
 adjust_branch_curr_salt_pack_rhel7_version_pkgbuild:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_version}}/pkgbuild.sls
-    - pattern: '{{pattern_text_date}}-0'
-    - repl: '{{replacement_text_date}}-0'
+    - pattern: '{{pattern_text_date}}'
+    - repl: '{{replacement_text_date}}'
     - show_changes: True
 
 
