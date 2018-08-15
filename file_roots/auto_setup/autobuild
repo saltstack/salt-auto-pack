@@ -161,6 +161,9 @@ curr_date="${date_long::-2}"
 APT_DATE="$(date +"%a, %d %b %Y %T %z")"
 RPM_DATE="$(date +"%a %b %d %Y")"
 
+# unique value for this run
+UNIQUE_VALUE=$$
+
 CURRDIR=$(pwd)
 
 PILLAR_DIR='/srv/pillar'
@@ -194,6 +197,7 @@ cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set build_apt_date = '${APT_DATE}' %}
 {% set build_rpm_date = '${RPM_DATE}' %}
 {% set build_py3 = ${PYTHON3_FLAG} %}
+{% set uniqueval = ${UNIQUE_VALUE} %}
 @EOF
 
 if [[ ${CLEAN_BLD} -ge 1 ]]; then
@@ -253,10 +257,14 @@ salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
+# setup environment and reactors
 salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
     _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
+# ensure reactor changes are read and give time for salt-minion to come back up
+systemctl restart salt-minion
+sleep 10
 
 salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
     _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";

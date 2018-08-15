@@ -19,6 +19,16 @@ clean_salt_pack_dir:
     - name: {{base_cfg.build_salt_pack_dir}}
 
 
+clean_salt_reactor_conf:
+   file.absent:
+     - name: {{base_cfg.build_salt_reactor_conf}}
+
+
+clean_salt_reactor_file:
+   file.absent:
+     - name: {{base_cfg.build_salt_reactor_file}}
+
+
 ## TBD need to utilize path from install environment for top.sls
 remove_pillar_top_file:
   file.absent:
@@ -32,4 +42,33 @@ reinitialize_pillar_top_file:
         base:
           '*':
             - auto_setup.tag_build_dsig
+
+
+reinitialize_reactor_conf:
+  file.managed:
+    - name: {{base_cfg.build_salt_reactor_conf}}
+    - makedirs: True
+    - contents: |
+        reactor:
+          - 'salt/auto-pack/build/finished':
+              - /srv/reactor/auto_pack_event.sls
+
+
+reinitialize_reactor_file:
+  file.managed:
+    - name: {{base_cfg.build_salt_reactor_file}}
+    - makedirs: True
+    - contents: |
+        {% raw %}
+        {% if data.tag == 'salt/auto-pack/build/finished' and data.data.build_transfer == 'completed' %}
+        test_auto_pack_event:
+          runner.cloud.destroy:
+            - tgt: '*'
+            - arg:
+              - {{data['id']}}
+        {% endif %}
+        {% endraw %}
+
+
+
 

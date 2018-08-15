@@ -10,6 +10,9 @@
 # get build clean or with currently build dependencies, default not clean
 {% set build_clean = pillar.get('build_clean', 0 ) %}
 
+# get unique value to use to separate different runs
+{% set uniqueval = pillar.get('uniqueval', '12345678') %}
+
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
 
 
@@ -64,24 +67,6 @@
 {% set build_salt_dir = build_homedir ~ '/salt_dir' %}
 {% set build_salt_pypi_dir = build_homedir ~ '/pypi_dir' %}
 {% set build_salt_pack_dir = build_homedir ~ '/salt_pack_dir' %}
-
-
-## rsa files
-## state file to setup public and private rsa keys for bld_res_server on minion
-## assumes user home /.ssh as destination directory
-## {#{% set rsa_priv_key_file = pillar.get('bld_res_server_id_rsa_priv_keyname', None) %}#}
-## {#{% set rsa_pub_key_file = 'bld_res_id_rsa.pub' %}#}
-
-## {# {% set rsa_file_name = 'rsa_autobuild' %} #}
-## {# {% set rsa_priv_key_file = rsa_file_name %} #}
-## {# {% set rsa_pub_key_file =  rsa_file_name ~ '.pub' %} #}
-
-## {#{% set rsa_pub_key_source_file = 'salt://auto_setup/' ~ rsa_pub_key_file %}#}
-
-## need to make base /srv/salt not so hard-coded, this fine for now
-##{#{% set rsa_key_dir = build_homedir ~ '/.ssh' %}#}
-## {# {% set rsa_key_dir = '/srv/salt' %} #}
-## {# {% set rsa_pub_key_absfile = rsa_key_dir ~ '/' ~ rsa_pub_key_file %} #}
-## {# {% set rsa_priv_key_absfile = rsa_key_dir ~ '/' ~ rsa_priv_key_file %} #}
-
+{% set build_salt_reactor_file = '/srv/reactor/auto_pack_event.sls' %}
+{% set build_salt_reactor_conf = '/etc/salt/master.d/reactor.conf' %}
 

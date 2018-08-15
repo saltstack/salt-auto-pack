@@ -12,6 +12,7 @@ web_nfsdir: '{{bd_cfg.web_nfsdir}}'
 build_apt_date: "{{bd_cfg.build_apt_date}}"
 build_rpm_date: "{{bd_cfg.build_rpm_date}}"
 build_py3: {{bd_cfg.build_py3}}
+uniqueval: "{{bd_cfg.uniqueval}}"
 keyid: 4DD70950
 
 {% if bd_cfg.build_clean is defined %}

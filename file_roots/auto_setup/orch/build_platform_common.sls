@@ -356,3 +356,11 @@ cleanup_mount_bldressrv_nfs_{{minion_platform}}:
       - umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
 
 
+publish_event_finished_build_{{minion_platform}}:
+  salt.function:
+    - name: event.send
+    - tgt: {{minion_tgt}}
+    - arg:
+      - 'salt/auto-pack/build/finished' '{ build_transfer: completed }'
+
+
