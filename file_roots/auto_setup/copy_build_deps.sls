@@ -65,7 +65,6 @@
 
 {% set web_server_base_dir = base_cfg.minion_bldressrv_rootdir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 {% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
-
 mkdir_deps_packages:
   file.directory:
     - name: {{nb_srcdir}}
@@ -87,6 +86,4 @@ copy_signed_deps:
     - runas: {{base_cfg.build_runas}}
     - require:
       - file: mkdir_deps_packages
-
-
 

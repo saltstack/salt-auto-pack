@@ -266,6 +266,10 @@ salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
 systemctl restart salt-minion
 sleep 10
 
+salt ${CODE_MINION} state.sls auto_setup.setup_local_mount || {
+    _warning "$SCRIPTNAME:state for auto_setup setup_local_mount failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
 salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
     _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";
 }
