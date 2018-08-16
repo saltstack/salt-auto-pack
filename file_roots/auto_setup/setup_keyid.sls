@@ -24,7 +24,7 @@ update_tag_build_dsig_with_keyid:
   file.replace:
     - name: {{tag_build_dsig_sls_file}}
     - pattern: |
-        keyid: 4DD70950
+        keyid: .*
     - repl: |
         keyid: {{keyid}}
     - show_changes: True
