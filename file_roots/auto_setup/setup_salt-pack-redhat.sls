@@ -29,13 +29,17 @@
 {% set release_level = '1' %}
 {% endif %}
 
+{% set spec_pattern_text_date = 'tobereplaced_date' %}
+{% set spec_replacement_text_date = '%{nil}' %}
 {% set pattern_text_date = default_branch_version_dotted ~ 'tobereplaced_date-0' %}
 {% set replacement_text_date = base_cfg.build_dsig ~ '-' ~ release_level %}
 {% set changelog_text = base_cfg.build_dsig ~ '-' ~ release_level %}
 {% else %}
 {% set release_level = '0' %}
-{% set pattern_text_date = 'tobereplaced_date' %}
-{% set replacement_text_date = base_cfg.build_dsig %}
+{% set spec_pattern_text_date = 'tobereplaced_date' %}
+{% set spec_replacement_text_date = base_cfg.build_dsig %}
+{% set pattern_text_date = spec_pattern_text_date ~ '-' ~ release_level %}
+{% set replacement_text_date = spec_replacement_text_date ~ '-' ~ release_level %}
 {% set changelog_text = default_branch_version_dotted ~ base_cfg.build_dsig ~ '-' ~ release_level %}
 {% endif %}
 
@@ -91,16 +95,16 @@ build_cp_salt_targz_rhel7_salt-fish-completions:
     - runas: {{base_cfg.build_runas}}
 
 
-{% if base_cfg.build_specific_tag %}
-
 adjust_branch_curr_salt_pack_rhel7_spec:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
-    - pattern: 'tobereplaced_date'
-    - repl: '%{nil}'
+    - pattern: '{{spec_pattern_text_date}}'
+    - repl: '{{spec_replacement_text_date}}'
     - show_changes: True
     - count: 1
 
+
+{% if base_cfg.build_specific_tag %}
 
 adjust_branch_curr_salt_pack_rhel7_spec_version:
   file.replace:
@@ -123,41 +127,7 @@ adjust_branch_curr_salt_pack_rhel7_spec_release:
     - require:
       - file: adjust_branch_curr_salt_pack_rhel7_spec_version
 
-
-adjust_branch_curr_salt_pack_rhel7_spec_release_changelog:
-  file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
-    - mode: insert
-    - after: "%changelog"
-    - content: |
-        * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
-        - Update to feature release {{changelog_text}} {{changelog_text_py_ver}}
-        
-        remove_this_line_after_insertion
-    - show_changes: True
-    - require:
-      - file: adjust_branch_curr_salt_pack_rhel7_spec_release
-
-
-adjust_branch_curr_salt_pack_rhel7_spec_release_changelog_cleanup:
-  file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
-    - mode: delete
-    - match: 'remove_this_line_after_insertion'
-    - show_changes: True
-    - require:
-      - file: adjust_branch_curr_salt_pack_rhel7_spec_release_changelog
-
-{% else %}
-
-adjust_branch_curr_salt_pack_rhel7_spec:
-  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
-    - pattern: '{{pattern_text_date}}'
-    - repl: '{{replacement_text_date}}'
-    - show_changes: True
-    - count: 1
-
+{% endif %}
 
 adjust_branch_curr_salt_pack_rhel7_spec_release_changelog:
   file.line:
@@ -183,8 +153,6 @@ adjust_branch_curr_salt_pack_rhel7_spec_release_changelog_cleanup:
     - require:
       - file: adjust_branch_curr_salt_pack_rhel7_spec_release_changelog
 
-{% endif %}
-
 
 adjust_branch_curr_salt_pack_rhel7_pkgbuild:
   file.replace:
@@ -198,8 +166,8 @@ adjust_branch_curr_salt_pack_rhel7_pkgbuild:
 adjust_branch_curr_salt_pack_rhel7_version_pkgbuild:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_version}}/pkgbuild.sls
-    - pattern: '{{pattern_text_date}}-0'
-    - repl: '{{replacement_text_date}}-0'
+    - pattern: '{{pattern_text_date}}'
+    - repl: '{{replacement_text_date}}'
     - show_changes: True
 
 
