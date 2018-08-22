@@ -27,7 +27,11 @@
 {% set build_py3 = pillar.get('build_py3', False) %}
 
 {% set uniqueval = base_cfg.uniqueval %}
-
+{% if uniqueval != '' %}
+{% set unique_postfix = '-' ~ uniqueval %}
+{% else %}
+{% set unique_postfix = '' %}
+{% endif %}
 {% if overwrite_cloud_map == false %}
 
 remove_curr_providers:
@@ -64,36 +68,36 @@ create_dflt_profiles:
     - name: {{dflt_cloud_profiles}}
     - ignore_whitespace: False
     - text: |
-        svc-builder-debian9-{{uniqueval}}:
+        svc-builder-debian9{{unique_postfix}}:
           provider: opennebula
           template: debian90-base-template
           image: debian90-base-image-v2
-        svc-builder-u1804-{{uniqueval}}:
+        svc-builder-u1804{{unique_postfix}}:
           provider: opennebula
           template: ubuntu1804_base_packer_template
           image: ubuntu1804-base-packer-2018050911351525887332
-        svc-builder-u1604-{{uniqueval}}:
+        svc-builder-u1604{{unique_postfix}}:
           provider: opennebula
           template: dgm_ubuntu1604_base_packer_template
           image: dgm_ubuntu1604_base_template-disk-2
-        svc-builder-cent7-{{uniqueval}}:
+        svc-builder-cent7{{unique_postfix}}:
           provider: opennebula
           template: svc-builder-centos7_base_packer_template
           image: centos7-base-packer-2017103110031509465834
-        svc-builder-debian8-{{uniqueval}}:
+        svc-builder-debian8{{unique_postfix}}:
           provider: opennebula
           template: svc-builder-debian8_base_packer_template
           image: svc-bld-debian8_base_template-disk-0
-        svc-builder-u1404-{{uniqueval}}:
+        svc-builder-u1404{{unique_postfix}}:
           provider: opennebula
           template: svc-builder-ubuntu1404_base_packer_template
           image: ubuntu1404-base-packer-2017103110011509465699
-        ## svc-builder-cent6-{{uniqueval}}:
+        ## svc-builder-cent6{{unique_postfix}}:
         ##   provider: opennebula
         ##   template: svc-builder-centos6_base_packer_template
         ##   image: centos6-base-packer-2017111414131510694006
         ##   script_args: stable 2016.11.8
-        ## svc-builder-amazon-{{uniqueval}}:
+        ## svc-builder-amazon{{unique_postfix}}:
         ##   provider: opennebula
         ##   template: svc-builder-amazon-linux_base_packer_template
         ##   image: svc-bld-amzn_base_template-disk-0
@@ -110,24 +114,24 @@ create_dflt_map:
     - name: {{dflt_cloud_map}}
     - ignore_whitespace: False
     - text: |
-        svc-builder-cent7-{{uniqueval}}:
-          - svc-builder-autotest-c7m-{{uniqueval}}
-        svc-builder-debian9-{{uniqueval}}:
-          - svc-builder-autotest-d9m-{{uniqueval}}
-        svc-builder-u1804-{{uniqueval}}:
-          - svc-builder-autotest-u18m-{{uniqueval}}
-        svc-builder-u1604-{{uniqueval}}:
-          - svc-builder-autotest-u16m-{{uniqueval}}
+        svc-builder-cent7{{unique_postfix}}:
+          - svc-builder-autotest-c7m{{unique_postfix}}
+        svc-builder-debian9{{unique_postfix}}:
+          - svc-builder-autotest-d9m{{unique_postfix}}
+        svc-builder-u1804{{unique_postfix}}:
+          - svc-builder-autotest-u18m{{unique_postfix}}
+        svc-builder-u1604{{unique_postfix}}:
+          - svc-builder-autotest-u16m{{unique_postfix}}
 {%- if build_py3 == False %}
-        svc-builder-debian8-{{uniqueval}}:
-          - svc-builder-autotest-d8m-{{uniqueval}}
-        svc-builder-u1404-{{uniqueval}}:
-          - svc-builder-autotest-u14m-{{uniqueval}}
+        svc-builder-debian8{{unique_postfix}}:
+          - svc-builder-autotest-d8m{{unique_postfix}}
+        svc-builder-u1404{{unique_postfix}}:
+          - svc-builder-autotest-u14m{{unique_postfix}}
 {% endif %}
-##        svc-builder-cent6-{{uniqueval}}:
-##          - svc-builder-autotest-c6m-{{uniqueval}}
-##        svc-builder-amazon-{{uniqueval}}:
-##          - svc-builder-autotest-amzn-{{uniqueval}}
+##        svc-builder-cent6{{unique_postfix}}:
+##          - svc-builder-autotest-c6m{{unique_postfix}}
+##        svc-builder-amazon{{unique_postfix}}:
+##          - svc-builder-autotest-amzn{{unique_postfix}}
 
 {% endif %}
 

@@ -63,9 +63,8 @@ reinitialize_reactor_file:
         {% if data.tag == 'salt/auto-pack/build/finished' and data.data.build_transfer == 'completed' %}
         test_auto_pack_event:
           runner.cloud.destroy:
-            - tgt: '*'
-            - arg:
-              - {{data['id']}}
+            - args:
+                instances: {{data['id']}}
         {% endif %}
         {% endraw %}
 

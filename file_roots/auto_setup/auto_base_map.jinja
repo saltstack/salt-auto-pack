@@ -11,7 +11,7 @@
 {% set build_clean = pillar.get('build_clean', 0 ) %}
 
 # get unique value to use to separate different runs
-{% set uniqueval = pillar.get('uniqueval', '12345678') %}
+{% set uniqueval = pillar.get('uniqueval', '') %}
 
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
 
