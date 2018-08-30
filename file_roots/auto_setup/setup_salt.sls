@@ -130,7 +130,7 @@ use_pypi_dist:
 cleanup_pypi_dist:
   file.absent:
     - name: {{base_cfg.build_salt_pypi_dir}}
-    
+
 {% endif %}
 
 

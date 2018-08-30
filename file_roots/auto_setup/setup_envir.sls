@@ -60,14 +60,18 @@ reinitialize_reactor_file:
     - makedirs: True
     - contents: |
         {% raw %}
+        {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
         {% if data.tag == 'salt/auto-pack/build/finished' and data.data.build_transfer == 'completed' %}
         test_auto_pack_event:
+        {% if base_cfg.build_cloud_hold == 0 %}
           runner.cloud.destroy:
             - args:
                 instances: {{data['id']}}
+          wheel.key.delete:
+            - args:
+                match: {{data['id']}}
+        {% endif %}
         {% endif %}
         {% endraw %}
-
-
 
 

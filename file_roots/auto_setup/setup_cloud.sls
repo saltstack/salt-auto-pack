@@ -82,8 +82,9 @@ create_dflt_profiles:
           image: dgm_ubuntu1604_base_template-disk-2
         svc-builder-cent7{{unique_postfix}}:
           provider: opennebula
-          template: svc-builder-centos7_base_packer_template
-          image: centos7-base-packer-2017103110031509465834
+          template: centos7.2_base_template
+          image: centos7.2-base-image-v5
+{%- if build_py3 == False %}
         svc-builder-debian8{{unique_postfix}}:
           provider: opennebula
           template: svc-builder-debian8_base_packer_template
@@ -92,6 +93,7 @@ create_dflt_profiles:
           provider: opennebula
           template: svc-builder-ubuntu1404_base_packer_template
           image: ubuntu1404-base-packer-2017103110011509465699
+{% endif %}
         ## svc-builder-cent6{{unique_postfix}}:
         ##   provider: opennebula
         ##   template: svc-builder-centos6_base_packer_template

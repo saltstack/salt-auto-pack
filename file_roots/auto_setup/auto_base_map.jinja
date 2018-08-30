@@ -10,7 +10,9 @@
 # get build clean or with currently build dependencies, default not clean
 {% set build_clean = pillar.get('build_clean', 0 ) %}
 
-# get unique value to use to separate different runs
+# get build cloud_hold, default remove cloud files
+{% set build_cloud_hold = pillar.get('build_cloud_hold', 0 ) %}
+
 {% set uniqueval = pillar.get('uniqueval', '') %}
 
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}

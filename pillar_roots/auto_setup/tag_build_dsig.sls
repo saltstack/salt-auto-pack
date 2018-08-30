@@ -27,6 +27,10 @@ code_named_branch_tag: '{{bd_cfg.code_named_branch_tag}}'
 specific_name_user: '{{bd_cfg.specific_name_user}}'
 {% endif %}
 
+{% if bd_cfg.specific_name_user_salt_only is defined %}
+specific_name_user_salt_only: '{{bd_cfg.specific_name_user_salt_only}}'
+{% endif %}
+
 {% if bd_cfg.specific_pack_branch is defined %}
 specific_pack_branch: '{{bd_cfg.specific_pack_branch}}'
 {% endif %}
@@ -37,5 +41,9 @@ user_nfs_server: '{{bd_cfg.user_nfs_server}}'
 
 {% if bd_cfg.build_cloud_map is defined %}
 build_cloud_map: '{{bd_cfg.build_cloud_map}}'
+{% endif %}
+
+{% if bd_cfg.build_cloud_hold is defined %}
+build_cloud_hold: '{{bd_cfg.build_cloud_hold}}'
 {% endif %}
 
