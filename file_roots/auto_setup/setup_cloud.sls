@@ -93,7 +93,7 @@ create_dflt_profiles:
           provider: opennebula
           template: svc-builder-ubuntu1404_base_packer_template
           image: ubuntu1404-base-packer-2017103110011509465699
-{% endif %}
+{%- endif %}
         ## svc-builder-cent6{{unique_postfix}}:
         ##   provider: opennebula
         ##   template: svc-builder-centos6_base_packer_template
@@ -103,7 +103,6 @@ create_dflt_profiles:
         ##   provider: opennebula
         ##   template: svc-builder-amazon-linux_base_packer_template
         ##   image: svc-bld-amzn_base_template-disk-0
-
 
 
 remove_curr_map:
@@ -129,7 +128,7 @@ create_dflt_map:
           - svc-builder-autotest-d8m{{unique_postfix}}
         svc-builder-u1404{{unique_postfix}}:
           - svc-builder-autotest-u14m{{unique_postfix}}
-{% endif %}
+{%- endif %}
 ##        svc-builder-cent6{{unique_postfix}}:
 ##          - svc-builder-autotest-c6m{{unique_postfix}}
 ##        svc-builder-amazon{{unique_postfix}}:
