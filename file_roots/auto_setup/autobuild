@@ -114,7 +114,7 @@ NFS_ABSDIR="${DEFAULT_NFS_ABSDIR}"
 WEB_NFSDIR="${DEFAULT_WEB_NFSDIR}"
 
 CLOUD_MAP=''
-CLOUD_HOLD=0
+CLOUD_HOLD_FLAG=False
 
 ## minion resident on Salt-Master node
 CODE_MINION='m7m'
@@ -132,7 +132,7 @@ while true; do
     -c | --clean ) CLEAN_BLD=1; shift ;;
     -g | --cloud_map ) CLOUD_MAP="$2"; shift 2 ;;
     -h | --help ) USAGE_HELP=true; shift ;;
-    -j | --cloud_hold ) CLOUD_HOLD=1; shift ;;
+    -j | --cloud_hold ) CLOUD_HOLD_FLAG=True; shift ;;
     -k | --python3 ) PYTHON3_FLAG=True; shift ;;
     -m | --minion ) CODE_MINION="$2"; shift 2 ;;
     -n | --named_branch ) RELEASE_CODE_NAMED_BRANCH="$2"; shift 2 ;;
@@ -205,6 +205,7 @@ cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set build_apt_date = '${APT_DATE}' %}
 {% set build_rpm_date = '${RPM_DATE}' %}
 {% set build_py3 = ${PYTHON3_FLAG} %}
+{% set build_cloud_hold = ${CLOUD_HOLD_FLAG} %}
 {% set uniqueval = ${UNIQUE_VALUE} %}
 @EOF
 
@@ -250,12 +251,6 @@ cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 @EOF
 fi
 
-if [[ -n "${CLOUD_HOLD}" ]]; then
-cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
-{% set build_cloud_hold = '${CLOUD_HOLD}' %}
-@EOF
-fi
-
 
 # set logging infomation
 ## want verbose while developing
@@ -271,19 +266,6 @@ fi
 
 
 _display "$SCRIPTNAME: autobuild started"
-
-# remove existing cloud files ?
-cloud_filelist='/etc/salt/cloud.map
-/etc/salt/cloud.profiles
-/etc/salt/cloud.providers'
-
-if [[ ${CLOUD_HOLD} -eq 0 ]]; then
-    for cldx in ${cloud_filelist}
-    do
-        cldx=$(echo "removing cloud file ${cldx}")
-        rm -f "${cldx}"
-    done
-fi
 
 salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";

@@ -11,7 +11,7 @@
 {% set build_clean = pillar.get('build_clean', 0 ) %}
 
 # get build cloud_hold, default remove cloud files
-{% set build_cloud_hold = pillar.get('build_cloud_hold', 0 ) %}
+{% set build_cloud_hold = pillar.get('build_cloud_hold', false ) %}
 
 {% set uniqueval = pillar.get('uniqueval', '') %}
 

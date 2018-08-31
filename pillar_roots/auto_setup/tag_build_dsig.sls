@@ -12,6 +12,7 @@ web_nfsdir: '{{bd_cfg.web_nfsdir}}'
 build_apt_date: "{{bd_cfg.build_apt_date}}"
 build_rpm_date: "{{bd_cfg.build_rpm_date}}"
 build_py3: {{bd_cfg.build_py3}}
+build_cloud_hold: {{bd_cfg.build_cloud_hold}}
 uniqueval: "{{bd_cfg.uniqueval}}"
 keyid: 4DD70950
 
@@ -41,9 +42,5 @@ user_nfs_server: '{{bd_cfg.user_nfs_server}}'
 
 {% if bd_cfg.build_cloud_map is defined %}
 build_cloud_map: '{{bd_cfg.build_cloud_map}}'
-{% endif %}
-
-{% if bd_cfg.build_cloud_hold is defined %}
-build_cloud_hold: '{{bd_cfg.build_cloud_hold}}'
 {% endif %}
 

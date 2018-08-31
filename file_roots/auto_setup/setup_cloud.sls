@@ -7,24 +7,23 @@
 {% set dflt_cloud_map = '/etc/salt/cloud.map' %}
 
 {% set build_cloud_map = pillar.get('build_cloud_map', dflt_cloud_map) %}
-
+{% set build_py3 = pillar.get('build_py3', False) %}
 {% set master_fqdn = grains.get('fqdn') %}
+{% set use_existing_cloud_map = false %}
 
-{% set overwrite_cloud_map = false %}
+
+{% if base_cfg.build_cloud_hold %}
 
 {% if build_cloud_map == dflt_cloud_map %}
 {% set my_id = grains.get('id') %}
-{% set overwrite_cloud_map_dict = salt.cmd.run("salt " ~ my_id ~ " file.file_exists '" ~ dflt_cloud_map ~ "' -l quiet --out=json") | load_json %}
-
-{% if overwrite_cloud_map_dict[my_id] == True %}
-{% set overwrite_cloud_map = true %}
-{% else %}
-{% set overwrite_cloud_map = false %}
+{% set use_existing_cloud_map_dict = salt.cmd.run("salt " ~ my_id ~ " file.file_exists '" ~ dflt_cloud_map ~ "' -l quiet --out=json") | load_json %}
+{% if use_existing_cloud_map_dict[my_id] == True %}
+{% set use_existing_cloud_map = true %}
+{% endif %}
 {% endif %}
 
 {% endif %}
 
-{% set build_py3 = pillar.get('build_py3', False) %}
 
 {% set uniqueval = base_cfg.uniqueval %}
 {% if uniqueval != '' %}
@@ -32,7 +31,9 @@
 {% else %}
 {% set unique_postfix = '' %}
 {% endif %}
-{% if overwrite_cloud_map == false %}
+
+
+{% if use_existing_cloud_map == false %}
 
 remove_curr_providers:
   file.absent:
