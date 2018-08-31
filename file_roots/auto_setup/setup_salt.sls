@@ -25,7 +25,7 @@
 {% else %}
 
 {% set have_tag_from_pypi_dict = salt.cmd.run("salt " ~ build_local_minion ~ " file.file_exists " ~ base_cfg.build_salt_pypi_dir ~ "/salt-" ~ base_cfg.build_version_full_dotted ~ ".tar.gz -l quiet --out=json")  | load_json %}
-{% if have_tag_from_pypi_dict[build_local_minion] == True %}  
+{% if have_tag_from_pypi_dict[build_local_minion] == True %} 
 {% set have_tag_from_pypi = true %}
 {% else %}
 {% set have_tag_from_pypi = false %}
@@ -57,8 +57,6 @@ build_create_salt_code_dir:
     - makedirs: True
 
 
-## {# - name: https://github.com/{{specific_user}}/salt.git #}
-##    - name: https://github.com/saltstack/salt.git
 retrieve_desired_salt:
   git.latest:
     - name: https://github.com/{{specific_user}}/salt.git
@@ -73,8 +71,6 @@ build_remove_version_override:
   file.absent:
     - name: {{uder_version_file}}
 
-
-## {#{% if base_cfg.build_specific_tag == false and specific_user == 'saltstack' %}#}
 
 {% if base_cfg.build_specific_tag == false %}
 
@@ -132,5 +128,4 @@ cleanup_pypi_dist:
     - name: {{base_cfg.build_salt_pypi_dir}}
 
 {% endif %}
-
 
