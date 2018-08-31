@@ -1,7 +1,8 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
-# get minion target and nfs host from pillar data
+# get minion target, local minion and nfs host from pillar data
 {% set minion_tgt = pillar.get('minion_tgt', 'UKNOWN-MINION') %}
+{% set build_local_id = pillar.get('build_local_minion', 'm7m') %}
 {% set nfs_host = pillar.get('nfs_host', 'UKNOWN-MINION')%}
 
 
@@ -102,17 +103,17 @@
 {% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
 {% set web_server_branch_symlink = web_server_base_dir ~ '/' ~ base_cfg.build_version_dotted %}
 
-{% set my_tgt_link_dict = salt.cmd.run('salt ' ~ base_cfg.minion_bldressrv ~ ' file.is_link ' ~ web_server_branch_symlink ~ ' -l quiet --out=json') | load_json  %}
-{% if my_tgt_link_dict[base_cfg.minion_bldressrv] == True %}
-{% set my_tgt_link = true %} 
+{% set my_tgt_link_dict = salt.cmd.run('salt ' ~ build_local_id ~ ' file.is_link ' ~ web_server_branch_symlink ~ ' -l quiet --out=json') | load_json  %}
+{% if my_tgt_link_dict[build_local_id] == True %}
+{% set my_tgt_link = true %}
 {% else %}
 {% set my_tgt_link = false %}
 {% endif %}
 
 {% if my_tgt_link %}
-{% set branch_symlink_dict = salt.cmd.run("salt " ~ base_cfg.minion_bldressrv  ~ " file.path_exists_glob " ~ web_server_branch_symlink ~ "/* -l quiet --out=json") | load_json %}
-{% if branch_symlink_dict[base_cfg.minion_bldressrv] == True %}
-{% set my_tgt_link_has_files = true %} 
+{% set branch_symlink_dict = salt.cmd.run("salt " ~ build_local_id ~ " file.path_exists_glob " ~ web_server_branch_symlink ~ "/* -l quiet --out=json") | load_json %}
+{% if branch_symlink_dict[build_local_id] == True %}
+{% set my_tgt_link_has_files = true %}
 {% else %}
 {% set my_tgt_link_has_files = false %}
 {% endif %}
@@ -128,10 +129,9 @@
 {% set bld_release_public_key = 'bld_release_public_key' %}
 {% set bld_release_pphrase = 'bld_release_pphrase' %}
 
-{% set build_local_id = pillar.get('build_local_minion', 'm7m') %}
 {% set vault_active_dict = salt.cmd.run("salt " ~ build_local_id  ~ " file.file_exists /etc/salt/master.d/vault.conf -l quiet --out=json") | load_json %}
 {% if vault_active_dict[build_local_id] == True %}
-{% set vault_active = true %} 
+{% set vault_active = true %}
 {% else %}
 {% set vault_active = false %}
 {% endif %}
@@ -150,7 +150,7 @@
 {% set pphrase_dict = salt.cmd.run("salt " ~ build_local_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_pphrase ~ "' -l quiet --out=json") | load_json %}
 {% endif %}
 
-{% set pphrase = pphrase_dict[build_local_id] %} 
+{% set pphrase = pphrase_dict[build_local_id] %}
 {% set pphrase_flag = true %}
 
 {% if pphrase|length >= 5 %}
@@ -176,7 +176,7 @@ build_init_{{minion_platform}}:
     - queue: True
     - sls:
       - setup.{{minion_specific}}
-    - pillar: 
+    - pillar:
         build_release: {{tgt_build_release}}
         build_arch: {{tgt_build_arch}}
     - require:
@@ -198,7 +198,7 @@ copy_redhat_7_base_subdir:
 {% endif %}
 
 
-ensure_bldresrv_nfs_dir_exists_{{minion_platform}}:
+ensure_bldressrv_nfs_dir_exists_{{minion_platform}}:
   salt.function:
     - name: file.makedirs
     - tgt: {{minion_tgt}}
@@ -217,7 +217,7 @@ mount_bldressrv_nfs_{{minion_platform}}:
     - arg:
       - mount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
     - require:
-      - salt: ensure_bldresrv_nfs_dir_exists_{{minion_platform}}
+      - salt: ensure_bldressrv_nfs_dir_exists_{{minion_platform}}
 
 
 ensure_dest_dir_exists_{{minion_platform}}:
@@ -275,7 +275,7 @@ build_highstate_{{base_cfg.build_version}}_{{minion_platform}}:
     - tgt: {{minion_tgt}}
     - queue: True
     - highstate: True
-    - pillar: 
+    - pillar:
         build_release: {{tgt_build_release}}
         build_arch: {{tgt_build_arch}}
 
@@ -286,7 +286,7 @@ sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
     - queue: True
     - sls:
       - repo.{{minion_specific}}
-    - pillar: 
+    - pillar:
         build_release: {{tgt_build_release}}
         build_arch: {{tgt_build_arch}}
 {%- if pphrase_flag %}
@@ -326,33 +326,21 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
       - salt: update_current_{{base_cfg.build_version}}_{{minion_platform}}
 
 
-update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}:
-  salt.function:
-    - name: file.lchown
-    - tgt: {{base_cfg.minion_bldressrv}}
-    - arg:
-      - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
-      - nobody
-      - nogroup
-    - require:
-      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
-
-
-update_current_dir_{{base_cfg.build_version}}_mode_{{minion_platform}}:
-  salt.function:
-    - name: cmd.run
-    - tgt: {{base_cfg.minion_bldressrv}}
-    - arg:
-      - chown -R nobody:nogroup {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}/*
-    - require:
-      - salt: update_current_{{base_cfg.build_version}}_mode_{{minion_platform}}
-
-
 cleanup_mount_bldressrv_nfs_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
       - umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
+
+
+publish_event_finished_build_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.event_build_finished
+    - require:
+      - salt: cleanup_mount_bldressrv_nfs_{{minion_platform}}
 
 

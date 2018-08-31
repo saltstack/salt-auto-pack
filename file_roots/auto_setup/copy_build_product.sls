@@ -65,7 +65,6 @@
 {% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
 
 
-## {# scp -i {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}} -o StrictHostKeyChecking='no' -p -r {{nb_srcdir}}/* {{base_cfg.minion_bldressrv_username}}@{{base_cfg.minion_bldressrv_hostname}}:{{web_server_archive_dir}}/ #}
 copy_signed_packages:
   cmd.run:
     - name: |

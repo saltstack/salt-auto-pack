@@ -12,6 +12,8 @@ web_nfsdir: '{{bd_cfg.web_nfsdir}}'
 build_apt_date: "{{bd_cfg.build_apt_date}}"
 build_rpm_date: "{{bd_cfg.build_rpm_date}}"
 build_py3: {{bd_cfg.build_py3}}
+build_cloud_hold: {{bd_cfg.build_cloud_hold}}
+uniqueval: "{{bd_cfg.uniqueval}}"
 keyid: 4DD70950
 
 {% if bd_cfg.build_clean is defined %}
@@ -24,6 +26,10 @@ code_named_branch_tag: '{{bd_cfg.code_named_branch_tag}}'
 
 {% if bd_cfg.specific_name_user is defined %}
 specific_name_user: '{{bd_cfg.specific_name_user}}'
+{% endif %}
+
+{% if bd_cfg.specific_name_user_salt_only is defined %}
+specific_name_user_salt_only: '{{bd_cfg.specific_name_user_salt_only}}'
 {% endif %}
 
 {% if bd_cfg.specific_pack_branch is defined %}

@@ -38,8 +38,10 @@ _warning() {
 
 _usage() {
     echo ""
-    echo "usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean] [-m|--minion <minion to use>]"
-    echo "             [-n|--named_branch <code named branch to build>] [-r|--nfs_minion <nfs server's minion>]"
+    echo "usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean]"
+    echo "             [-g|--cloud_map <specific cloud map>] [-j|--cloud_hold]"
+    echo "             [-m|--minion <minion to use>] [-n|--named_branch <code named branch to build>]"
+    echo "             [-r|--nfs_minion <nfs server's minion>] [-o|--user_salt_only]"
     echo "             [-p|--pack_branch <git named branch>] [-s|--specific_name <specific named version to produce>]"
     echo "             [-u|--user <username for git salt and salt-pack>] [-v|--verbose]"
     echo "             [-w|--web_nfsdir <root NFS directory on web server>"
@@ -50,12 +52,14 @@ _usage() {
     echo "                      if specific_name user is not used then, salt-pack branch version is used \(for example: nightly build\)"
     echo "  -c, --clean         clean build, do not not use any dependencies already built for the branch, default not clean"
 ##    echo "  -d, --debug     debug output enabled"
-    echo "  -g, --cloud-map     cloud map to overwrite default build minions to use, default '/etc/salt/cloud.map'"
+    echo "  -g, --cloud_map     cloud map to overwrite default build minions to use, default '/etc/salt/cloud.map'"
     echo "  -h, --help          this message"
+    echo "  -j, --cloud_hold    default is to remove cloud files, cloud.map, cloud.profiles, cloud.providers, switch preserves them"
 ##    echo "  -l, --log       logging mode"
     echo "  -k, --python3       Python version to build for, False Python2, True Python 3, default False"
     echo "  -m, --minion        salt-minion installed on salt-master node to use for code checkout, default 'm7m'"
     echo "  -n, --named_branch  git named branch for example: nitrogen, my_user_branch1, no default"
+    echo "  -o, --user_salt_only only use username git's salt for build, used in conjunction with --user, default false"
     echo "  -p, --pack_branch   name of salt-pack branch to use, default develop"
     echo "  -r, --nfs_minion    using user's NFS server's minion"
     echo "  -s, --specific_name specifically named version to build, default dated autobuild, for example: rc1"
@@ -71,10 +75,10 @@ _usage() {
     echo "  creates specified packages for major platforms, signed with Salt testing keys"
     echo "  dated by current start time of execution in YYYYMMDDhhmmnnnn format"
     echo "  current platforms:"
-    echo "      Redhat 7 and 6"
+    echo "      Redhat 7"
     echo "      Debian 9 and 8"
     echo "      Raspbian 9 and 8"
-    echo "      Ubuntu 16.04 and 14.04"
+    echo "      Ubuntu 18.04, 16.04 and 14.04"
     echo ""
     echo "  script expects node to contain salt-master with auto_setup installed and"
     echo "  salt-minion installed on salt-master node, id 'm7m'"
@@ -95,6 +99,7 @@ RELEASE_SPECIFIC_NAME_BRANCH=''
 RELEASE_DSIG_BRANCH=''
 RELEASE_SPECIFIC_NAME_USER=''
 RELEASE_SPECIFIC_PACK_BRANCH=''
+RELEASE_SPECIFIC_USER_SALT_ONLY=False
 PYTHON3_FLAG=False
 
 ## Web Server Defaults, note req. match values in auto_base_map.jinja
@@ -109,6 +114,7 @@ NFS_ABSDIR="${DEFAULT_NFS_ABSDIR}"
 WEB_NFSDIR="${DEFAULT_WEB_NFSDIR}"
 
 CLOUD_MAP=''
+CLOUD_HOLD_FLAG=False
 
 ## minion resident on Salt-Master node
 CODE_MINION='m7m'
@@ -126,9 +132,11 @@ while true; do
     -c | --clean ) CLEAN_BLD=1; shift ;;
     -g | --cloud_map ) CLOUD_MAP="$2"; shift 2 ;;
     -h | --help ) USAGE_HELP=true; shift ;;
+    -j | --cloud_hold ) CLOUD_HOLD_FLAG=True; shift ;;
     -k | --python3 ) PYTHON3_FLAG=True; shift ;;
     -m | --minion ) CODE_MINION="$2"; shift 2 ;;
     -n | --named_branch ) RELEASE_CODE_NAMED_BRANCH="$2"; shift 2 ;;
+    -o | --user_salt_ony) RELEASE_SPECIFIC_USER_SALT_ONLY=True; shift ;;
     -p | --pack_branch) RELEASE_SPECIFIC_PACK_BRANCH="$2"; shift 2 ;;
     -r | --nfs_minion ) NFS_MINION="$2"; shift 2 ;;
     -s | --specific_name) RELEASE_SPECIFIC_NAME_BRANCH="$2"; shift 2 ;;
@@ -160,6 +168,9 @@ date_long=$(date +%Y%m%d%H%M%S%N)
 curr_date="${date_long::-2}"
 APT_DATE="$(date +"%a, %d %b %Y %T %z")"
 RPM_DATE="$(date +"%a %b %d %Y")"
+
+# unique value for this run
+UNIQUE_VALUE=$$
 
 CURRDIR=$(pwd)
 
@@ -194,6 +205,8 @@ cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set build_apt_date = '${APT_DATE}' %}
 {% set build_rpm_date = '${RPM_DATE}' %}
 {% set build_py3 = ${PYTHON3_FLAG} %}
+{% set build_cloud_hold = ${CLOUD_HOLD_FLAG} %}
+{% set uniqueval = ${UNIQUE_VALUE} %}
 @EOF
 
 if [[ ${CLEAN_BLD} -ge 1 ]]; then
@@ -226,6 +239,12 @@ cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 @EOF
 fi
 
+if [[ -n "${RELEASE_SPECIFIC_USER_SALT_ONLY}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set specific_name_user_salt_only = '${RELEASE_SPECIFIC_USER_SALT_ONLY}' %}
+@EOF
+fi
+
 if [[ -n "${CLOUD_MAP}" ]]; then
 cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set build_cloud_map = '${CLOUD_MAP}' %}
@@ -248,15 +267,22 @@ fi
 
 _display "$SCRIPTNAME: autobuild started"
 
-
 salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
+# setup environment and reactors
 salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
     _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
+# ensure reactor changes are read and give time for salt-minion to come back up
+systemctl restart salt-minion
+sleep 10
+
+salt ${CODE_MINION} state.sls auto_setup.setup_local_mount || {
+    _warning "$SCRIPTNAME:state for auto_setup setup_local_mount failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
 
 salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
     _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";
@@ -283,10 +309,6 @@ salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
 }
 
 _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
-## salt-run state.orchestrate auto_setup.orch.build_for_minions || {
-##     _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
-## }
-## _display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
 
 # get list from salt-cloud and remove [ and ] on first and last line
 node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.opennebula | .opennebula | keys' | tail -n +2 | head -n -1)
