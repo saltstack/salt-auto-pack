@@ -51,12 +51,12 @@ create_dflt_providers:
             master: {{master_fqdn}}
             ec2_tags:
               aws:
-                access_key: 'AKIAIHXSXLOYQKITTWPQ'
-                secret_key: '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'
+                access_key: 'ABCDEFGHIJK'
+                secret_key: '0123456789'
           grains:
             role_type: auto-pack
-          id: 'AKIAIHXSXLOYQKITTWPQ'
-          key: '21/riiNwGB9InDoJfz/EgfhSbhDv0pMkyGKZRswb'
+          id: 'ABCDEFGHIJK'
+          key: '0123456789'
           private_key: /root/.ssh/jenkins-testing.pem
           keyname: jenkins-auto_pack
           ## DGM
