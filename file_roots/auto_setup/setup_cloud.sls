@@ -58,10 +58,13 @@ create_dflt_providers:
           id: 'ABCDEFGHIJK'
           key: '0123456789'
           private_key: /root/.ssh/jenkins-testing.pem
-          keyname: jenkins-auto_pack
-          ## DGM
+          keyname: jenkins-testing
           driver: ec2
-          ## ssh_interface: private_ips
+          ssh_interface: private_ips
+          block_device_mappings:
+            - DeviceName: /dev/sda1
+              Ebs.VolumeSize: 100
+              Ebs.VolumeType: gp2
 
 ## {#                access_key: '{{ salt['pillar.get']('amazon_apikey') }}' #}
 ## {#                secret_key: '{{ salt['pillar.get']('amazon_password') }}' #}
@@ -109,8 +112,6 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          volumes:
-            - { size: 100, device: /dev/nvme0n1, type: gp2 }
           script_args: stable 2017.7.5
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -130,8 +131,6 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          volumes:
-            - { size: 100, device: /dev/nvme0n1, type: gp2 }
           script_args: stable 2017.7.5
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -152,8 +151,6 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          volumes:
-            - { size: 100, device: /dev/nvme0n1, type: gp2 }
           script_args: stable 2017.7.5
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -173,8 +170,6 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          volumes:
-            - { size: 100, device: /dev/nvme0n1, type: gp2 }
           script_args: stable 2017.7.5
         ## svc-builder-amazon{{unique_postfix}}:
         ##   provider: production-ec2-us-west-2-private-ips
@@ -199,8 +194,6 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          volumes:
-            - { size: 100, device: /dev/nvme0n1, type: gp2 }
           script_args: stable 2017.7.5
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -220,8 +213,6 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          volumes:
-            - { size: 100, device: /dev/nvme0n1, type: gp2 }
           script_args: stable 2017.7.5
 {%- endif %}
 
