@@ -135,7 +135,6 @@ create_dflt_profiles:
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-04f8bb7c
-          image: ami-0a0296f7f67824612
           size: t2.medium
           private_key: /root/.ssh/jenkins-testing.pem
           ssh_interface: private_ips

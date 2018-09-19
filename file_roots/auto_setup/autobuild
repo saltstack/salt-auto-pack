@@ -104,7 +104,8 @@ PYTHON3_FLAG=False
 
 ## Web Server Defaults, note req. match values in auto_base_map.jinja
 DEFAULT_NFS_MINION='bldressrv'
-DEFAULT_NFS_HOST='nas01.c7.saltstack.net'
+## DEFAULT_NFS_HOST='nas01.c7.saltstack.net'
+DEFAULT_NFS_HOST='10.1.0.98'
 DEFAULT_NFS_ABSDIR='/volume3'
 DEFAULT_WEB_NFSDIR='/build_res'
 
@@ -311,7 +312,8 @@ salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
 _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
 
 # get list from salt-cloud and remove [ and ] on first and last line
-node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.opennebula | .opennebula | keys' | tail -n +2 | head -n -1)
+## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
+node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name')       ## for ec2
 
 for ndx in ${node_list}
 do
