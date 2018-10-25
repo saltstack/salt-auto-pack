@@ -49,39 +49,13 @@ create_dflt_providers:
           location: us-west-2
           minion:
             master: {{master_fqdn}}
-            ec2_tags:
-              aws:
-                access_key: 'ABCDEFGHIJK'
-                secret_key: '0123456789'
           grains:
             role_type: auto-pack
-          id: 'ABCDEFGHIJK'
-          key: '0123456789'
-          private_key: /root/.ssh/jenkins-testing.pem
-          keyname: jenkins-testing
+          id: 'use-instance-role-credentials'
+          key: 'use-instance-role-credentials'
+          private_key: /root/.ssh/dgm_aws_west2.pem
+          keyname: dgm_aws_west2
           driver: ec2
-          ssh_interface: private_ips
-          block_device_mappings:
-            - DeviceName: /dev/sda1
-              Ebs.VolumeSize: 100
-              Ebs.VolumeType: gp2
-
-## {#                access_key: '{{ salt['pillar.get']('amazon_apikey') }}' #}
-## {#                secret_key: '{{ salt['pillar.get']('amazon_password') }}' #}
-## {#          id: '{{ salt['pillar.get']('amazon_apikey') }}' #}
-## {#          key: '{{ salt['pillar.get']('amazon_password') }}' #}
-##        opennebula:
-##          minion:
-## {#            master: {{master_fqdn}} #}
-##          xml_rpc: http://one.c7.saltstack.net:2633/RPC2
-##          driver: opennebula
-##          user: svc-builder
-##          password: VbJY6DjxJhHAauTXuRv8
-##          ssh_username: root
-##          ssh_password: salt
-##          wait_for_passwd_maxtries: 40
-##          fqdn_base: c7.saltstack.net
-##          private_key: /root/.ssh/opennebula_key
 
 
 remove_curr_profiles:
@@ -96,151 +70,158 @@ create_dflt_profiles:
     - text: |
         svc-builder-cent7{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0a0296f7f67824612
+          image: ami-0ffa870f91badc247
           size: t2.medium
-          private_key: /root/.ssh/jenkins-testing.pem
+          private_key: /root/.ssh/dgm_aws_west2.pem
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
               PrivateIpAddresses:
                 - Primary: True
               AssociatePublicIpAddress: True
-              SubnetId: subnet-700cf53b
+              SubnetId: subnet-0255fcff51ec5b3c6
               SecurityGroupId:
-                - sg-d6b08ea9
+                - sg-071124f28ee3c1ba0
           del_root_vol_on_destroy: True
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2017.7.5
+          script_args: stable 2018.3
+        svc-builder-amzn2{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-0c7c8c52254e39a4a
+          size: t2.medium
+          private_key: /root/.ssh/dgm_aws_west2.pem
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: subnet-0255fcff51ec5b3c6
+              SecurityGroupId:
+                - sg-071124f28ee3c1ba0
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: stable 2018.3
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-84439fe4
+          image: ami-00beebe3b200f11f7
           size: t2.medium
-          private_key: /root/.ssh/jenkins-testing.pem
+          private_key: /root/.ssh/dgm_aws_west2.pem
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
               PrivateIpAddresses:
                 - Primary: True
               AssociatePublicIpAddress: True
-              SubnetId: subnet-700cf53b
+              SubnetId: subnet-0255fcff51ec5b3c6
               SecurityGroupId:
-                - sg-d6b08ea9
+                - sg-071124f28ee3c1ba0
           del_root_vol_on_destroy: True
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2017.7.5
+          script_args: stable 2018.3
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-04f8bb7c
+          image: ami-0ba52302988a1727a
           size: t2.medium
-          private_key: /root/.ssh/jenkins-testing.pem
+          private_key: /root/.ssh/dgm_aws_west2.pem
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
               PrivateIpAddresses:
                 - Primary: True
               AssociatePublicIpAddress: True
-              SubnetId: subnet-700cf53b
+              SubnetId: subnet-0255fcff51ec5b3c6
               SecurityGroupId:
-                - sg-d6b08ea9
+                - sg-071124f28ee3c1ba0
           del_root_vol_on_destroy: True
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2017.7.5
+          script_args: stable 2018.3
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-51537029
+          image: ami-09df975df682ba431
           size: t2.medium
-          private_key: /root/.ssh/jenkins-testing.pem
+          private_key: /root/.ssh/dgm_aws_west2.pem
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
               PrivateIpAddresses:
                 - Primary: True
               AssociatePublicIpAddress: True
-              SubnetId: subnet-700cf53b
+              SubnetId: subnet-0255fcff51ec5b3c6
               SecurityGroupId:
-                - sg-d6b08ea9
+                - sg-071124f28ee3c1ba0
           del_root_vol_on_destroy: True
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2017.7.5
-        ## svc-builder-amazon{{unique_postfix}}:
-        ##   provider: production-ec2-us-west-2-private-ips
-        ##  image: 
-        ##  ssh_username: 
+          script_args: stable 2018.3
 {%- if build_py3 == False %}
+        svc-builder-amzn1{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-01550240a94a81747
+          size: t2.medium
+          private_key: /root/.ssh/dgm_aws_west2.pem
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: subnet-0255fcff51ec5b3c6
+              SecurityGroupId:
+                - sg-071124f28ee3c1ba0
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: stable 2018.3
         svc-builder-debian8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0d5b6c3d
+          image: ami-08b0808c789129e0d
           size: t2.medium
-          private_key: /root/.ssh/jenkins-testing.pem
+          private_key: /root/.ssh/dgm_aws_west2.pem
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
               PrivateIpAddresses:
                 - Primary: True
               AssociatePublicIpAddress: True
-              SubnetId: subnet-700cf53b
+              SubnetId: subnet-0255fcff51ec5b3c6
               SecurityGroupId:
-                - sg-d6b08ea9
+                - sg-071124f28ee3c1ba0
           del_root_vol_on_destroy: True
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2017.7.5
+          script_args: stable 2018.3
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0d10b1979afc575ba
+          image: ami-06fe77e2ddcefdced
           size: t2.medium
-          private_key: /root/.ssh/jenkins-testing.pem
+          private_key: /root/.ssh/dgm_aws_west2.pem
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
               PrivateIpAddresses:
                 - Primary: True
               AssociatePublicIpAddress: True
-              SubnetId: subnet-700cf53b
+              SubnetId: subnet-0255fcff51ec5b3c6
               SecurityGroupId:
-                - sg-d6b08ea9
+                - sg-071124f28ee3c1ba0
           del_root_vol_on_destroy: True
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2017.7.5
+          script_args: stable 2018.3
 {%- endif %}
-
-##DGM         svc-builder-debian9{{unique_postfix}}:
-##DGM           provider: opennebula
-##DGM           template: debian90-base-template
-##DGM           image: debian90-base-image-v2
-##DGM {#        svc-builder-u1804{{unique_postfix}}: #}
-##DGM           provider: opennebula
-##DGM           template: ubuntu1804_base_packer_template
-##DGM           image: ubuntu1804-base-packer-2018050911351525887332
-##DGM {#        svc-builder-u1604{{unique_postfix}}: #}
-##DGM           provider: opennebula
-##DGM           template: dgm_ubuntu1604_base_packer_template
-##DGM           image: dgm_ubuntu1604_base_template-disk-2
-##DGM {#        svc-builder-cent7{{unique_postfix}}: #}
-##DGM           provider: opennebula
-##DGM           template: centos7.2_base_template
-##DGM           image: centos7.2-base-image-v5
-##DGM  {#{%- if build_py3 == False %} #}
-##DGM         svc-builder-debian8{{unique_postfix}}: #}
-##DGM           provider: opennebula
-##DGM           template: svc-builder-debian8_base_packer_template
-##DGM           image: svc-bld-debian8_base_template-disk-0
-##DGM   {#       svc-builder-u1404{{unique_postfix}}: #}
-##DGM           provider: opennebula
-##DGM           template: svc-builder-ubuntu1404_base_packer_template
-##DGM           image: ubuntu1404-base-packer-2017103110011509465699
-##DGM {%- endif %}
 
 
 remove_curr_map:
@@ -255,6 +236,8 @@ create_dflt_map:
     - text: |
         svc-builder-cent7{{unique_postfix}}:
           - svc-builder-autotest-c7m{{unique_postfix}}
+        svc-builder-amzn2{{unique_postfix}}:
+          - svc-builder-autotest-amzn2{{unique_postfix}}
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
         svc-builder-u1804{{unique_postfix}}:
@@ -262,15 +245,15 @@ create_dflt_map:
         svc-builder-u1604{{unique_postfix}}:
           - svc-builder-autotest-u16m{{unique_postfix}}
 {%- if build_py3 == False %}
+        svc-builder-amzn1{{unique_postfix}}:
+          - svc-builder-autotest-amzn1{{unique_postfix}}
         svc-builder-debian8{{unique_postfix}}:
           - svc-builder-autotest-d8m{{unique_postfix}}
         svc-builder-u1404{{unique_postfix}}:
           - svc-builder-autotest-u14m{{unique_postfix}}
 {%- endif %}
-##        svc-builder-cent6{{unique_postfix}}:
-##          - svc-builder-autotest-c6m{{unique_postfix}}
-##        svc-builder-amazon{{unique_postfix}}:
-##          - svc-builder-autotest-amzn{{unique_postfix}}
+
+{%- endif %}    ## if use_existing_cloud_map == false
 
 
 ## startup build minions specified in cloud map
