@@ -15,6 +15,13 @@
 
 {% set uniqueval = pillar.get('uniqueval', '') %}
 
+### TBD THIS AREA IS TO BE REPLACED WITH VALUES FROM VAULT
+### AND IS ONLY HERE AS A TEMPORARY STOP-GAP
+{% set subnet_id = pillar.get('subnet_id', 'Subnet Id is missing') %}
+{% set sec_group_id = pillar.get('sec_group_id', 'Security Group Id is missing') %}
+{% set aws_access_priv_key_name = pillar.get('aws_access_priv_key_name', 'AWS Access key is missing') %}
+
+
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
 
 

@@ -14,6 +14,10 @@ build_rpm_date: "{{bd_cfg.build_rpm_date}}"
 build_py3: {{bd_cfg.build_py3}}
 build_cloud_hold: {{bd_cfg.build_cloud_hold}}
 uniqueval: "{{bd_cfg.uniqueval}}"
+subnet_id: '{{bd_cfg.subnet_id}}'
+sec_group_id: '{{bd_cfg.sec_group_id}}'
+aws_access_priv_key_name: '{{bd_cfg.aws_access_priv_key_name}}'
+
 keyid: 4DD70950
 
 {% if bd_cfg.build_clean is defined %}

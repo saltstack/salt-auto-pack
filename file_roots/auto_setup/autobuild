@@ -120,6 +120,14 @@ CLOUD_HOLD_FLAG=False
 ## minion resident on Salt-Master node
 CODE_MINION='m7m'
 
+### TBD THIS AREA IS TO BE REPLACED WITH VALUES FROM VAULT
+### AND IS ONLY HERE AS A TEMPORARY STOP-GAP
+
+SUBNETID='subnet-0255fcff51ec5b3c6'
+SECGROUPID='sg-071124f28ee3c1ba0'
+AWS_ACCESS_PRIV_KEY_NAME='dgm_aws_west2.pem'
+
+
 
 ##    -d | --debug )  DEBUG=True; shift ;;
 ##    -l | --log )  LOG_MODE="$2"; shift 2 ;;
@@ -208,6 +216,9 @@ cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set build_py3 = ${PYTHON3_FLAG} %}
 {% set build_cloud_hold = ${CLOUD_HOLD_FLAG} %}
 {% set uniqueval = ${UNIQUE_VALUE} %}
+{% set subnet_id = '${SUBNETID}' %}
+{% set sec_group_id = '${SECGROUPID}' %}
+{% set aws_access_priv_key_name = '${AWS_ACCESS_PRIV_KEY_NAME}' %}
 @EOF
 
 if [[ ${CLEAN_BLD} -ge 1 ]]; then
