@@ -203,6 +203,10 @@ else
     RELEASE_DSIG_BRANCH=${RELEASE_SPECIFIC_NAME_BRANCH}
 fi
 
+## output Branch signifier
+echo "Release DSIG Branch is \'${RELEASE_DSIG_BRANCH}\'"
+
+
 cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set branch_tag = '${BRANCH_TAG}' %}
 {% set build_dsig = '${RELEASE_DSIG_BRANCH}' %}
