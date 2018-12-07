@@ -69,5 +69,11 @@ copy_signed_packages:
   cmd.run:
     - name: |
         cp -p -R {{nb_srcdir}}/* {{web_server_archive_dir}}/
-    - runas: {{base_cfg.build_runas}}
+
+
+copy_signed_packages_done:
+ cmd.run:
+    - name: echo "copied to {{web_server_archive_dir}}/"
+    - require:
+      - cmd: copy_signed_packages
 

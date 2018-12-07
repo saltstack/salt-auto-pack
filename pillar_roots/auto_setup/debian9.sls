@@ -3,5 +3,5 @@
 # comment
 build_dest: '/srv/debian/{{base_cfg.build_dest_dir}}/pkgs'
 build_version: '{{base_cfg.build_version}}'
-build_runas: 'root'
+build_runas: 'admin'
 

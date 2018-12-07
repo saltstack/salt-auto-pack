@@ -332,6 +332,8 @@ cleanup_mount_bldressrv_nfs_{{minion_platform}}:
     - tgt: {{minion_tgt}}
     - arg:
       - umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
+    - require:
+      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
 
 
 publish_event_finished_build_{{minion_platform}}:

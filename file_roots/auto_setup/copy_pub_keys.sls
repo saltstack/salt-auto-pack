@@ -70,6 +70,9 @@ ensure_saltstack_gpg_pub_key:
   file.managed:
     - name: {{nb_srcdir}}/SALTSTACK-GPG-KEY.pub
     - source: salt://{{slspath}}/SALTSTACK-GPG-KEY.pub
+    - user: {{base_cfg.build_runas}}
+    - group: {{base_cfg.build_runas}}
+    - file_mode: 644
     - force: True
     - makedirs: True
     - preserve: True

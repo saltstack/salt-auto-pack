@@ -87,3 +87,10 @@ copy_signed_deps:
     - require:
       - file: mkdir_deps_packages
 
+
+copy_signed_deps_done:
+ cmd.run:
+    - name: echo "copied to {{nb_srcdir}}/"
+    - require:
+      - cmd: copy_signed_deps
+
