@@ -123,9 +123,9 @@ CODE_MINION='m7m'
 ### TBD THIS AREA IS TO BE REPLACED WITH VALUES FROM VAULT
 ### AND IS ONLY HERE AS A TEMPORARY STOP-GAP
 
-SUBNETID='subnet-0255fcff51ec5b3c6'
-SECGROUPID='sg-071124f28ee3c1ba0'
-AWS_ACCESS_PRIV_KEY_NAME='dgm_aws_west2.pem'
+SUBNETID='subnet-to-be-determined'
+SECGROUPID='sec-group-to-be-determined'
+AWS_ACCESS_PRIV_KEY_NAME='aws-file-key-name-to-be-determined'
 
 
 
@@ -257,7 +257,7 @@ fi
 
 if [[ -n "${RELEASE_SPECIFIC_USER_SALT_ONLY}" ]]; then
 cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
-{% set specific_name_user_salt_only = '${RELEASE_SPECIFIC_USER_SALT_ONLY}' %}
+{% set specific_name_user_salt_only = ${RELEASE_SPECIFIC_USER_SALT_ONLY} %}
 @EOF
 fi
 
@@ -310,6 +310,11 @@ salt ${CODE_MINION} state.sls auto_setup || {
 
 salt ${CODE_MINION} state.sls auto_setup.setup_vault || {
     _error "$SCRIPTNAME:state for auto_setup vault keys for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+# refresh again after any updates from vault values to pillar
+salt ${CODE_MINION} saltutil.refresh_pillar || {
+    _error "$SCRIPTNAME: secondary refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
 salt ${CODE_MINION} state.sls auto_setup.setup_keyid || {

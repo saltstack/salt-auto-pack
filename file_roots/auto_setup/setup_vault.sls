@@ -17,7 +17,7 @@
 
 {% set vault_active_dict = salt.cmd.run("salt " ~ my_id  ~ " file.file_exists /etc/salt/master.d/vault.conf -l quiet --out=json") | load_json %}
 {% if vault_active_dict[my_id] == True %}
-{% set vault_active = true %} 
+{% set vault_active = true %}
 {% else %}
 {% set vault_active = false %}
 {% endif %}
@@ -28,29 +28,34 @@
 
 ## retrive relevant key information from vault
 {% if base_cfg.build_specific_tag %}
-
 {% set pub_key_b64 = salt['vault'].read_secret(secret_path, bld_release_public_key) %}
 {% set priv_key_b64 = salt['vault'].read_secret(secret_path, bld_release_private_key) %}
 {% set pphrase_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_pphrase ~ "' -l quiet --out=json") | load_json %}
-
 {% else %}
-
 {% set pub_key_b64 = salt['vault'].read_secret(secret_path, bld_test_public_key) %}
 {% set priv_key_b64 = salt['vault'].read_secret(secret_path, bld_test_private_key) %}
 {% set pphrase_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_pphrase ~ "' -l quiet --out=json") | load_json %}
-
 {% endif %}
 
-{% set pphrase = pphrase_dict[my_id] %} 
-
+{% set pphrase = pphrase_dict[my_id] %}
 {% if pphrase|length >= 5 %}
 {% set pphrase_value = pphrase|truncate(5, True, '') %}
-
 {% if pphrase_value != 'ERROR' %}
 {% set pphrase_flag = True %}
 {% endif %}
-
 {% endif %}
+
+# retrieve AWS credentials from Vault
+
+{% set aws_access_priv_key = salt['vault'].read_secret(secret_path, 'aws_access_priv_key') %}
+{% set subnet_id_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'subnet_id' -l quiet --out=json") | load_json %}
+{% set sec_group_id_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'sec_group_id' -l quiet --out=json") | load_json %}
+{% set aws_access_priv_key_name_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'aws_access_priv_key_name' -l quiet --out=json") | load_json %}
+
+{% set subnet_id =  subnet_id_dict[my_id] %}
+{% set sec_group_id = sec_group_id_dict[my_id] %}
+{% set aws_access_priv_key_name = aws_access_priv_key_name_dict[my_id] %}
+{% set aws_access_priv_key_filename = "/srv/salt/auto_setup/" ~ aws_access_priv_key_name %}
 
 
 {% set test_file = '/srv/pillar/auto_setup/gpg_keys_do_not_commit.sls' %}
@@ -58,7 +63,7 @@
 {% set test_file_pub = '/srv/pillar/auto_setup/gpg_keys_do_not_commit_b.sls' %}
 
 {% set base_map_jinja_file = '/srv/salt/setup/base_map.jinja' %}
-{% set tag_build_dsig_sls_file = '/srv/pillar/auto_setup/tag_build_dsig.sls' %}
+{% set tag_build_dsig_jinja_file = '/srv/pillar/auto_setup/tag_build_dsig.jinja' %}
 
 
 remove_gpg_keys_pillar_file:
@@ -158,25 +163,91 @@ append_blanks2_write_gpg_priv_keys_in_pillar:
         echo -e "\ngpg_pkg_priv_keyname: gpg_pkg_key.pem\n" >> {{test_file}}
 
 
+remove_aws_priv_keys_file:
+  file.absent:
+    - name: {{aws_access_priv_key_filename}}
+
+
+remove_aws_priv_keys_tmp_file:
+  file.absent:
+    - name: {{aws_access_priv_key_filename}}_tmp
+
+
+write_aws_priv_keys_to_file:
+  file.decode:
+    - name: {{aws_access_priv_key_filename}}_tmp
+    - encoded_data: |
+        {{aws_access_priv_key}}
+    - encoding_type: 'base64'
+    - require:
+      - file: write_aws_priv_keys_begin_to_file
+
+
+write_aws_priv_keys_end_to_file:
+  file.append:
+    - name: {{aws_access_priv_key_filename}}_tmp
+    - text: |
+        -----END RSA PRIVATE KEY-----
+    - require:
+      - file: write_aws_priv_keys_to_file
+
+
+write_aws_priv_keys_begin_to_file:
+  file.append:
+    - name: {{aws_access_priv_key_filename}}
+    - text: |
+        -----BEGIN RSA PRIVATE KEY-----
+
+
+write_aws_priv_keys_contents_to_file:
+  file.append:
+    - name: {{aws_access_priv_key_filename}}
+    - source:  {{aws_access_priv_key_filename}}_tmp
+
+
 {% if pphrase_flag ==  false %}
 disable_use_of_passphrases:
   file.replace:
     - name: {{base_map_jinja_file}}
     - pattern: |
-{% raw %}
+{%- raw %}
         {% set repo_use_passphrase = True %}
-{% endraw %}
+{%- endraw %}
     - repl: |
-{% raw %}
+{%- raw %}
         {% set repo_use_passphrase = False %}
-{% endraw %}
+{%- endraw %}
     - show_changes: True
     - append_if_not_found: True
     - not_found_content: |
-{% raw %}
+{%- raw %}
         {% set repo_use_passphrase = False %}
-{% endraw %}
+{%- endraw %}
 {% endif %}
+
+
+update_pillar_subnet_id:
+  file.replace:
+    - name: {{tag_build_dsig_jinja_file}}
+    - pattern: 'subnet-to-be-determined'
+    - repl: '{{subnet_id}}'
+    - show_changes: True
+
+
+update_pillar_sec_group_id:
+  file.replace:
+    - name: {{tag_build_dsig_jinja_file}}
+    - pattern: 'sec-group-to-be-determined'
+    - repl: '{{sec_group_id}}'
+    - show_changes: True
+
+
+update_pillar_aws_access_priv_key_name:
+  file.replace:
+    - name: {{tag_build_dsig_jinja_file}}
+    - pattern: 'aws-file-key-name-to-be-determined'
+    - repl: '{{aws_access_priv_key_name}}'
+    - show_changes: True
 
 
 cleanup_gpg_pub_keys_pillar_file:
@@ -188,5 +259,5 @@ cleanup_gpg_priv_keys_pillar_file:
   file.absent:
     - name: {{test_file_priv}}
 
-{% endif %}
+{% endif %}  ## vault active
 

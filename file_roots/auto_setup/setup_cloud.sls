@@ -31,8 +31,7 @@
 {% else %}
 {% set unique_postfix = '' %}
 {% endif %}
- 
- 
+
 
 {% if use_existing_cloud_map == false %}
 
@@ -54,7 +53,7 @@ create_dflt_providers:
             role_type: auto-pack
           id: 'use-instance-role-credentials'
           key: 'use-instance-role-credentials'
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: salt://auto_setup/{{base_cfg.aws_access_priv_key_name}}
           keyname: {{base_cfg.aws_access_pub_key_name}}
           driver: ec2
 
@@ -125,7 +124,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3
+          script_args: git fluorine
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0ba52302988a1727a
@@ -144,7 +143,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3
+          script_args: git fluorine
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-09df975df682ba431
@@ -163,7 +162,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3
+          script_args: git fluorine
 {%- if build_py3 == False %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -202,7 +201,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3
+          script_args: git fluorine
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06fe77e2ddcefdced
@@ -221,7 +220,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3
+          script_args: git fluorine
 {%- endif %}
 
 
