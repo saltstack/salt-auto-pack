@@ -10,9 +10,11 @@
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
 {% set changelog_text_py_ver = ' for Python 2 and Python 3' %}
+{% set ubuntu_supported = ['ubuntu1804', 'ubuntu1604'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
+{% set ubuntu_supported = ['ubuntu1804', 'ubuntu1604', 'ubuntu1404'] %}
 {% endif %}
 
 {% if base_cfg.build_specific_tag %}
@@ -40,7 +42,6 @@
 
 {% set spec_file_tarball = 'salt_ubuntu.tar.xz' %}
 
-{% set ubuntu_supported = ['ubuntu1804', 'ubuntu1604', 'ubuntu1404'] %}
 
 {% for ubuntu_ver in ubuntu_supported %}
 

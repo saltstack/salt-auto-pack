@@ -9,9 +9,11 @@
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
 {% set changelog_text_py_ver = ' for Python 2 and Python 3' %}
+{% set debian_supported = ['debian9'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
+{% set debian_supported = ['debian9', 'debian8'] %}
 {% endif %}
 
 
@@ -39,7 +41,6 @@
 {% set specific_user = pillar.get( 'specific_name_user', 'saltstack') %}
 {% set spec_file_tarball = 'salt_debian.tar.xz' %}
 
-{% set debian_supported = ['debian9', 'debian8'] %}
 
 {% for debian_ver in debian_supported %}
 
