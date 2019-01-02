@@ -124,10 +124,10 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 10 git fluorine
+          script_args: -s 15 git fluorine
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0e624da882fc5aeec
+          image: ami-0c7510a13590cf507
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -143,7 +143,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 10 git fluorine
+          script_args: -s 15 git fluorine
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-09df975df682ba431
@@ -162,7 +162,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 10 git fluorine
+          script_args:  -s 15 git fluorine
 {%- if build_py3 == False %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -201,7 +201,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 10 git fluorine
+          script_args: -s 15 git fluorine
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06fe77e2ddcefdced
@@ -220,7 +220,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 10 git fluorine
+          script_args:  -s 15 git fluorine
 {%- endif %}
 
 
@@ -264,4 +264,4 @@ create_dflt_map:
 
 launch_cloud_map:
   cmd.run:
-    - name: "salt-cloud -l debug -y -P -m {{build_cloud_map}}"
+    - name: "salt-cloud -l quiet -y -P -m {{build_cloud_map}}"
