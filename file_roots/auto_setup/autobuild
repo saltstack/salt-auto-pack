@@ -333,7 +333,7 @@ _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from
 
 # get list from salt-cloud and remove [ and ] on first and last line
 ## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
-node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name')       ## for ec2
+node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
 
 for ndx in ${node_list}
 do
