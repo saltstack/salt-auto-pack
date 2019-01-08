@@ -124,7 +124,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git fluorine
+          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0c7510a13590cf507
@@ -143,7 +143,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git fluorine
+          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-09df975df682ba431
@@ -162,7 +162,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args:  -s 15 git fluorine
+          script_args:  -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
 {%- if build_py3 == False %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -201,7 +201,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git fluorine
+          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06fe77e2ddcefdced
@@ -220,7 +220,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args:  -s 15 git fluorine
+          script_args:  -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
 {%- endif %}
 
 
