@@ -99,11 +99,11 @@
 {% set repo_dsig = 'py3' %}
 {% endif %}
 
-{% set web_server_base_dir = base_cfg.minion_bldressrv_rootdir ~ '/' ~ specific_user ~ '/' ~ repo_dsig ~ '/' ~ os_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
-{% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
-{% set web_server_branch_symlink = web_server_base_dir ~ '/' ~ base_cfg.build_version_dotted %}
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsrootdir ~ '/' ~ specific_user ~ '/' ~ repo_dsig ~ '/' ~ os_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+{% set nfs_server_archive_dir = nfs_server_base_dir ~ '/archive/' ~ nb_destdir %}
+{% set nfs_server_branch_symlink = nfs_server_base_dir ~ '/' ~ base_cfg.build_version_dotted %}
 
-{% set my_tgt_link_dict = salt.cmd.run('salt ' ~ build_local_id ~ ' file.is_link ' ~ web_server_branch_symlink ~ ' -l quiet --out=json') | load_json  %}
+{% set my_tgt_link_dict = salt.cmd.run('salt ' ~ build_local_id ~ ' file.is_link ' ~ nfs_server_branch_symlink ~ ' -l quiet --out=json') | load_json  %}
 {% if my_tgt_link_dict[build_local_id] == True %}
 {% set my_tgt_link = true %}
 {% else %}
@@ -111,7 +111,7 @@
 {% endif %}
 
 {% if my_tgt_link %}
-{% set branch_symlink_dict = salt.cmd.run("salt " ~ build_local_id ~ " file.path_exists_glob " ~ web_server_branch_symlink ~ "/* -l quiet --out=json") | load_json %}
+{% set branch_symlink_dict = salt.cmd.run("salt " ~ build_local_id ~ " file.path_exists_glob " ~ nfs_server_branch_symlink ~ "/* -l quiet --out=json") | load_json %}
 {% if branch_symlink_dict[build_local_id] == True %}
 {% set my_tgt_link_has_files = true %}
 {% else %}
@@ -198,26 +198,26 @@ copy_redhat_7_base_subdir:
 {% endif %}
 
 
-ensure_bldressrv_nfs_dir_exists_{{minion_platform}}:
+ensure_nfs_dir_exists_{{minion_platform}}:
   salt.function:
     - name: file.makedirs
     - tgt: {{minion_tgt}}
     - arg:
-      - {{base_cfg.minion_bldressrv_nfsrootdir}}/
+      - {{base_cfg.minion_mount_nfsrootdir}}/
     - kwarg:
         user: nobody
         group: nogroup
         mode: 775
 
 
-mount_bldressrv_nfs_{{minion_platform}}:
+mount_nfs_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - mount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}} {{base_cfg.minion_bldressrv_nfsrootdir}}
+      - mount {{nfs_opts}} {{nfs_host}}:{{base_cfg.minion_nfsabsdir}} {{base_cfg.minion_mount_nfsrootdir}}
     - require:
-      - salt: ensure_bldressrv_nfs_dir_exists_{{minion_platform}}
+      - salt: ensure_nfs_dir_exists_{{minion_platform}}
 
 
 ensure_dest_dir_exists_{{minion_platform}}:
@@ -225,13 +225,13 @@ ensure_dest_dir_exists_{{minion_platform}}:
     - name: file.makedirs
     - tgt: {{minion_tgt}}
     - arg:
-      - {{web_server_archive_dir}}/
+      - {{nfs_server_archive_dir}}/
     - kwarg:
         user: nobody
         group: nogroup
         mode: 775
     - require:
-      - salt: mount_bldressrv_nfs_{{minion_platform}}
+      - salt: mount_nfs_{{minion_platform}}
 
 
 copy_pub_keys_for_packages_{{base_cfg.build_version}}_{{minion_platform}}:
@@ -301,7 +301,7 @@ remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
     - name: file.remove
     - tgt: {{minion_tgt}}
     - arg:
-      - {{web_server_base_dir}}/{{base_cfg.build_version_dotted}}
+      - {{nfs_server_base_dir}}/{{base_cfg.build_version_dotted}}
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
 
@@ -311,8 +311,8 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
     - name: file.symlink
     - tgt: {{minion_tgt}}
     - arg:
-      - {{web_server_archive_dir}}
-      - {{web_server_branch_symlink}}
+      - {{nfs_server_archive_dir}}
+      - {{nfs_server_branch_symlink}}
 
 
 copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
@@ -326,12 +326,12 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
       - salt: update_current_{{base_cfg.build_version}}_{{minion_platform}}
 
 
-cleanup_mount_bldressrv_nfs_{{minion_platform}}:
+cleanup_mount_nfs_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
+      - umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
     - require:
       - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
 
@@ -343,6 +343,6 @@ publish_event_finished_build_{{minion_platform}}:
     - sls:
       - auto_setup.event_build_finished
     - require:
-      - salt: cleanup_mount_bldressrv_nfs_{{minion_platform}}
+      - salt: cleanup_mount_nfs_{{minion_platform}}
 
 

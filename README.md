@@ -1,6 +1,6 @@
 # Automation for Salt Package Builder (auto-pack)
 
-Auto-pack is an open-source automation for building Salt packages and its dependencies, creating a repository and then delivering the built products to a results web server acting as a final receptical from which the build prodiuct can be obtained, leveraging salt-pack on various Operating Systems, most commonly used Linux platforms, for example: Redhat/CentOS and Debian/Ubuntu families, utilizing Salt states, execution modules and orchestration.
+Auto-pack is an open-source automation for building Salt packages and its dependencies, creating a repository and then delivering the built products to a results NFS server acting as a final receptical from which the build prodiuct can be obtained, leveraging salt-pack on various Operating Systems, most commonly used Linux platforms, for example: Redhat/CentOS and Debian/Ubuntu families, utilizing Salt states, execution modules and orchestration.
 
 Auto-pack relies on SaltStack’s Master-Minion functionality to build the desired packages and repository, and can install the required tools to build the packages and repository for that platform.
 
@@ -19,9 +19,9 @@ Currently auto-pack is driven by a shell script, autobuild, located in file_root
 
 # Overview
 
-Auto-pack can check out a specific version of Salt, a specific version of salt-pack, build Salt and the dependencies using salt-pack on a desired operating system utilising a specified cloud.map, create the repository containing that repository and then deliver the built product to a specified results web server, laying out the repository and built product in a manner similar to repo.saltstack.com.
+Auto-pack can check out a specific version of Salt, a specific version of salt-pack, build Salt and the dependencies using salt-pack on a desired operating system utilising a specified cloud.map, create the repository containing that repository and then deliver the built product to a specified results NFS server, laying out the repository and built product in a manner similar to repo.saltstack.com.
 
-This allows a user to build their own version of Salt and its dependencies, creating a repository using their own keys and deliver the results to a web server of their own choosing.  This allows for a user to create new features or bug fixs for Salt with it's own versions of dependencies, create a repository and delived them to a web server from which the build products can be installed and tested.
+This allows a user to build their own version of Salt and its dependencies, creating a repository using their own keys and deliver the results to a NFS server of their own choosing.  This allows for a user to create new features or bug fixs for Salt with it's own versions of dependencies, create a repository and deliver them to a NFS server from which the build products can be installed and tested (web server utilizing NFS mounts).
 
 Currently auto-pack has been enabled to leverage Hashicorp's Vault for the location of secret keys and passphrase with which to sign created repositories, however it does not have to be used and a specific user's keys can be used by replacing the contents of pillar_roots/auto_setup/gpg_keys.sls or the default Salt testing keys (no passphrase used) can be used to sign the created repositories. If the file /etc/salt/master.d/vault.conf is found then use of Vault is assummed.
 
@@ -45,11 +45,11 @@ Currently supported Operating Systems
 Currently auto-pack is driven from the shell script autobuild located in file_roots/auto_setup which takes a number of short or long switches to control it's functionality as follows:
 
 usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean] [-m|--minion <minion to use>]"
-             [-n|--named_branch <code named branch to build>] [-r|--web_minion <web server's minion>]"
+             [-n|--named_branch <code named branch to build>] [-r|--nfs_opts <NFS server's directories>]"
              [-p|--pack_branch <git named branch>] [-s|--specific_name <specific named version to produce>]"
              [-u|--user <username for git salt and salt-pack>] [-v|--verbose]"
-             [-w|--web_user <user account on web server>] [-y|--web_host <hostname of web server>]"
-             [-z|--web_absdir <absolute directory on web server for build product>]"
+             [-w|--mount_nfsdir <mount root NFS directory for minions>] [-y|--nfs_host <hostname of NFS server>]"
+             [-z|--nfs_absdir <absolute NFS directory on NFS server for build product>]"
 
 
 autobuild can be typically used to built a dated version of the current head of a Salt branch in Git as follows:
@@ -57,7 +57,7 @@ autobuild can be typically used to built a dated version of the current head of 
     cd /srv/salt/auto_setup
     ./autobuild
 
-This will result in a dated packaged build of Salt and its dependencies, here for Redhat 7 on the results web server in the directory:
+This will result in a dated packaged build of Salt and its dependencies, here for Redhat 7 on the results NFS server in the directory:
 
     /build_res/autobuild/saltstack/yum/redhat/7/x86_64/archive/2017_7nb201712112221239405613
         .
@@ -93,14 +93,14 @@ This will result in a dated packaged build of Salt and its dependencies, here fo
 |   m   | minion        | salt-minion installed on salt-master node to use for code checkout, default id 'm7m'                                      |
 |   n   | named_branch  | git named branch for example: nitrogen, my_user_branch1, no default                                                       |
 |   p   | pack_branch   | name of salt-pack branch to use, default develop                                                                          |
-|   r   | web_minion    | results web server's minion id, default bldressrv                                                                         |
+|   r   | nfs_opts      | NFS options used to mount NFS server's directories                                                                        |
 |   s   | specific_name | specifically named version to build, default date YYYYMMDDhhmmnnnn similar to salt's job id, for example: rc1             |
 |   t   | tag           | build tagged release, for example: specific release version v2017.7.1, if PyPI doesn't contain tag, then utilizes git tag |
-|   u   | user          | username for git's salt and salt-pack, and results web server account, default saltstack                                  |
+|   u   | user          | username for git's salt and salt-pack, and results NFS server , default saltstack                                  |
 |       |               | Note: user's salt-pack changes should be against root for branch, for example: 2017.7                                     |
 |   v   | verbose       | verbose output                                                                                                            |
-|   w   | web_user      | user's results web server acting as receptical for build products                                                         |
-|   y   | web_host      | user's results web server hostname for repository for build products                                                      |
-|   z   | web_dir       | user's results web server directory as repository for build products                                                      |
+|   w   | mount_nfsdir  | mount root NFS directory for minions as repository for build products                                                     |
+|   y   | nfs_host      | using user's NFS server hostname for repository for build products                                                        |
+|   z   | nfs_absdir    |absolute NFS directory on NFS server for mounting root NFS directory, for example: /volume3                                |
 
 

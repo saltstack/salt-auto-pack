@@ -28,13 +28,10 @@
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
 
 
-## Web Server values
-{% set minion_bldressrv             = pillar.get('web_minion', 'bldressrv') %}
-{% set minion_bldressrv_username    = pillar.get('web_user', 'root') %}
-{% set minion_bldressrv_hostname    = pillar.get('web_host') %}
-{% set minion_bldressrv_nfs_absdir  = pillar.get('nfs_absdir') %}
-{% set minion_bldressrv_nfsrootdir  = pillar.get('web_nfsdir') %}
-{% set minion_bldressrv_rootdir     = minion_bldressrv_nfsrootdir ~ '/autobuild' %}
+## NFS Mount values
+{% set minion_nfsabsdir = pillar.get('nfs_absdir') %}
+{% set minion_mount_nfsrootdir = pillar.get('mount_nfsdir') %}
+{% set minion_mount_nfsbasedir = minion_mount_nfsrootdir ~ '/autobuild' %}
 
 
 ## generate build labels
