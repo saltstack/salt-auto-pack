@@ -7,5 +7,5 @@
 
 umount_{{build_local_id}}:
   cmd.run:
-    - name: umount {{nfs_host}}:{{base_cfg.minion_bldressrv_nfs_absdir}}{{base_cfg.minion_bldressrv_nfsrootdir}}
+    - name: umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
 

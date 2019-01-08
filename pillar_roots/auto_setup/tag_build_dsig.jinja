@@ -1,10 +1,10 @@
 {% set branch_tag = '2018.3' %}
 {% set build_dsig = 'nb201804132100229785440' %}
 {% set build_local_minion = 'm7m' %}
-{% set nfs_minion = 'bldressrv' %}
-{% set nfs_host = 'nas01.c7.saltstack.net' %}
-{% set nfs_absdir = '/volume3' %}
-{% set web_nfsdir = '/build_res' %}
+{% set nfs_opts = '-t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport' %}
+{% set nfs_host = 'fs-6e0b6fc6.efs.us-west-2.amazonaws.com' %}
+{% set nfs_absdir = '/' %}
+{% set mount_nfsdir = '/mnt_build_res' %}
 {% set build_apt_date = 'Fri, 13 Apr 2018 21:00:22 +0000' %}
 {% set build_rpm_date = 'Fri Apr 13 2018' %}
 {% set build_py3 = False %}
