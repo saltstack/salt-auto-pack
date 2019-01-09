@@ -3,8 +3,8 @@
 # get minion target, local minion and nfs host from pillar data
 {% set minion_tgt = pillar.get('minion_tgt', 'UKNOWN-MINION') %}
 {% set build_local_id = pillar.get('build_local_minion', 'm7m') %}
-{% set nfs_host = pillar.get('nfs_host', 'UKNOWN-MINION')%}
-
+{% set nfs_host = pillar.get('nfs_host', 'UKNOWN-MINION') %}
+{% set nfs_opts = pillar.get('nfs_opts', '') %}
 
 {% set null_dict = dict() %}
 {% set tgt_build_repo_dsig = 'UNKNOWN' %}
@@ -99,7 +99,7 @@
 {% set repo_dsig = 'py3' %}
 {% endif %}
 
-{% set nfs_server_base_dir = base_cfg.minion_mount_nfsrootdir ~ '/' ~ specific_user ~ '/' ~ repo_dsig ~ '/' ~ os_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ repo_dsig ~ '/' ~ os_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 {% set nfs_server_archive_dir = nfs_server_base_dir ~ '/archive/' ~ nb_destdir %}
 {% set nfs_server_branch_symlink = nfs_server_base_dir ~ '/' ~ base_cfg.build_version_dotted %}
 

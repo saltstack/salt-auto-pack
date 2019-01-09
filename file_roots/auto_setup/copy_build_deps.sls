@@ -63,7 +63,7 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set nfs_server_base_dir = base_cfg.minion_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 
 mkdir_deps_packages:
   file.directory:
