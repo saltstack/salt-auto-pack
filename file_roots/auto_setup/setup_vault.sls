@@ -28,14 +28,17 @@
 
 ## retrive relevant key information from vault
 {% if base_cfg.build_specific_tag %}
-{% set pub_key_b64 = salt['vault'].read_secret(secret_path, bld_release_public_key) %}
-{% set priv_key_b64 = salt['vault'].read_secret(secret_path, bld_release_private_key) %}
+{% set pub_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_public_key ~ "' -l quiet --out=json") | load_json %}
+{% set priv_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_private_key ~ "' -l quiet --out=json") | load_json %}
 {% set pphrase_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_pphrase ~ "' -l quiet --out=json") | load_json %}
 {% else %}
-{% set pub_key_b64 = salt['vault'].read_secret(secret_path, bld_test_public_key) %}
-{% set priv_key_b64 = salt['vault'].read_secret(secret_path, bld_test_private_key) %}
+{% set pub_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_public_key ~ "' -l quiet --out=json") | load_json %}
+{% set priv_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_private ~ "' -l quiet --out=json") | load_json %}
 {% set pphrase_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_pphrase ~ "' -l quiet --out=json") | load_json %}
 {% endif %}
+
+{% set pub_key_b64 = pub_key_b64_dict[my_id] %}
+{% set priv_key_b64 = priv_key_b64_dict[my_id] %}
 
 {% set pphrase = pphrase_dict[my_id] %}
 {% if pphrase|length >= 5 %}
@@ -45,9 +48,11 @@
 {% endif %}
 {% endif %}
 
-# retrieve AWS credentials from Vault
 
-{% set aws_access_priv_key = salt['vault'].read_secret(secret_path, 'aws_access_priv_key') %}
+# retrieve AWS credentials from Vault
+{% set aws_access_priv_key_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'aws_access_priv_key' -l quiet --out=json") | load_json %}
+{% set aws_access_priv_key = aws_access_priv_key_dict[my_id] %}
+
 {% set subnet_id_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'subnet_id' -l quiet --out=json") | load_json %}
 {% set sec_group_id_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'sec_group_id' -l quiet --out=json") | load_json %}
 {% set aws_access_priv_key_name_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'aws_access_priv_key_name' -l quiet --out=json") | load_json %}

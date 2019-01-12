@@ -292,26 +292,34 @@ salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
-# setup environment and reactors
-salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
-    _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+## DGM # setup environment and reactors
+## DGM salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
+## DGM     _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+## DGM }
+## DGM 
+## DGM # ensure reactor changes are read and give time for salt-minion to come back up
+## DGM systemctl restart salt-minion
+## DGM sleep 10
+## DGM 
+## DGM salt ${CODE_MINION} state.sls auto_setup.setup_local_mount || {
+## DGM     _warning "$SCRIPTNAME:state for auto_setup setup_local_mount failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+## DGM }
+## DGM 
+## DGM salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
+## DGM     _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";
+## DGM }
+## DGM 
+## DGM salt ${CODE_MINION} state.sls auto_setup || {
+## DGM     _error "$SCRIPTNAME:state for auto_setup failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+## DGM }
+
+salt ${CODE_MINION} state.sls auto_setup.setup_vault_conf || {
+    _error "$SCRIPTNAME:state for auto_setup vault conf for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
-# ensure reactor changes are read and give time for salt-minion to come back up
-systemctl restart salt-minion
+# ensure vault conf changes are read and give time for salt-master to come back up
+systemctl restart salt-master
 sleep 10
-
-salt ${CODE_MINION} state.sls auto_setup.setup_local_mount || {
-    _warning "$SCRIPTNAME:state for auto_setup setup_local_mount failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
-    _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-salt ${CODE_MINION} state.sls auto_setup || {
-    _error "$SCRIPTNAME:state for auto_setup failed to function for '${BRANCH_TAG}', retcode '${$?}'";
-}
 
 salt ${CODE_MINION} state.sls auto_setup.setup_vault || {
     _error "$SCRIPTNAME:state for auto_setup vault keys for '${BRANCH_TAG}', retcode '${$?}'";
@@ -328,24 +336,24 @@ salt ${CODE_MINION} state.sls auto_setup.setup_keyid || {
 
 _display "$SCRIPTNAME: autobuild checked out and modified salt from '${BRANCH_TAG}' and about to build via orchstration"
 
-_display "$SCRIPTNAME: autobuild ensure build minions are up and running"
-
-salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
-    _error "$SCRIPTNAME:state for auto_setup failed to setup cloud for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-_display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
-
-# get list from salt-cloud and remove [ and ] on first and last line
-## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
-node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
-
-for ndx in ${node_list}
-do
-    nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
-    salt "${nx}" saltutil.refresh_grains
-    salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
-done
-
-_display "$SCRIPTNAME: autobuild finished"
-
+## _display "$SCRIPTNAME: autobuild ensure build minions are up and running"
+## 
+## salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
+##     _error "$SCRIPTNAME:state for auto_setup failed to setup cloud for '${BRANCH_TAG}', retcode '${$?}'";
+## }
+## 
+## _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
+## 
+## # get list from salt-cloud and remove [ and ] on first and last line
+## ## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
+## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
+## 
+## for ndx in ${node_list}
+## do
+##     nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
+##     salt "${nx}" saltutil.refresh_grains
+##     salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+## done
+## 
+## _display "$SCRIPTNAME: autobuild finished"
+## 
