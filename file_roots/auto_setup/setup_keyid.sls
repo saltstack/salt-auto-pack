@@ -3,10 +3,11 @@
 ## comment for highlighting
 
 {% set my_id = grains.get('id') %}
+{% set my_gpg_tmpfile = '/tmp/tmp_copy_of_pub_gpg_file' %}  ## needs to match that used in setup_vault_user.sls
 
-{% set vault_active_dict = salt.cmd.run("salt " ~ my_id  ~ " file.file_exists /etc/salt/master.d/vault.conf -l quiet --out=json") | load_json %}
+{% set vault_active_dict = salt.cmd.run("salt " ~ my_id  ~ " file.file_exists " ~ my_gpg_tmpfile ~ " -l quiet --out=json") | load_json %}
 {% if vault_active_dict[my_id] == True %}
-{% set vault_active = true %} 
+{% set vault_active = true %}
 {% else %}
 {% set vault_active = false %}
 {% endif %}
@@ -17,7 +18,7 @@
 ## do this copy explicit file due to having jinja issues - revisit TBD
 
 {% set tag_build_dsig_sls_file = '/srv/pillar/auto_setup/tag_build_dsig.sls' %}
-{% set finger_test = salt.cmd.run("gpg --with-fingerprint /tmp/tmp_copy_of_pub_gpg_file", use_vt=True)|truncate(20, True, '')|trim %}
+{% set finger_test = salt.cmd.run("gpg --with-fingerprint " ~ my_gpg_tmpfile, use_vt=True)|truncate(20, True, '')|trim %}
 {% set keysize, keyid = finger_test.split('/', 1) -%}
 
 update_tag_build_dsig_with_keyid:
@@ -35,7 +36,7 @@ update_tag_build_dsig_with_keyid:
 
 cleanup_tmp_copy_of_pub_file:
   file.absent:
-    - name: /tmp/tmp_copy_of_pub_gpg_file
+    - name: {{my_gpg_tmpfile}}
     - require:
       - file: update_tag_build_dsig_with_keyid
 

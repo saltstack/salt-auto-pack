@@ -313,16 +313,8 @@ salt ${CODE_MINION} saltutil.refresh_pillar || {
 ## DGM     _error "$SCRIPTNAME:state for auto_setup failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 ## DGM }
 
-salt ${CODE_MINION} state.sls auto_setup.setup_vault_conf || {
-    _error "$SCRIPTNAME:state for auto_setup vault conf for '${BRANCH_TAG}', retcode '${$?}'";
-}
-
-# ensure vault conf changes are read and give time for salt-master to come back up
-systemctl restart salt-master
-sleep 10
-
-salt ${CODE_MINION} state.sls auto_setup.setup_vault || {
-    _error "$SCRIPTNAME:state for auto_setup vault keys for '${BRANCH_TAG}', retcode '${$?}'";
+salt ${CODE_MINION} state.sls auto_setup.setup_vault_user || {
+    _error "$SCRIPTNAME:state for auto_setup user vault keys for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
 # refresh again after any updates from vault values to pillar
