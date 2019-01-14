@@ -313,8 +313,8 @@ salt ${CODE_MINION} state.sls auto_setup || {
     _error "$SCRIPTNAME:state for auto_setup failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
-salt ${CODE_MINION} state.sls auto_setup.setup_vault || {
-    _error "$SCRIPTNAME:state for auto_setup vault keys for '${BRANCH_TAG}', retcode '${$?}'";
+salt ${CODE_MINION} state.sls auto_setup.setup_vault_user || {
+    _error "$SCRIPTNAME:state for auto_setup user vault keys for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
 # refresh again after any updates from vault values to pillar
