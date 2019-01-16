@@ -70,7 +70,7 @@ create_dflt_profiles:
     - text: |
         svc-builder-cent7{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0ffa870f91badc247
+          image: ami-0bf2c7f0df2c22ce0
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -89,7 +89,7 @@ create_dflt_profiles:
           script_args: stable 2018.3.3
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0c7c8c52254e39a4a
+          image: ami-0de21f348ed67b2f6
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -108,7 +108,7 @@ create_dflt_profiles:
           script_args: stable 2018.3.3
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-00beebe3b200f11f7
+          image: ami-0f73b3e4b0b0a67ac
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -127,7 +127,7 @@ create_dflt_profiles:
           script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0c7510a13590cf507
+          image: ami-0772a3ab3adde716a
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -146,7 +146,7 @@ create_dflt_profiles:
           script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-09df975df682ba431
+          image: ami-0a48da1bc7a80c2f2
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -166,7 +166,7 @@ create_dflt_profiles:
 {%- if build_py3 == False %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-01550240a94a81747
+          image: ami-06878170589c3321a
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -185,7 +185,7 @@ create_dflt_profiles:
           script_args: stable 2016.11
         svc-builder-debian8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-08b0808c789129e0d
+          image: ami-0f91bd607d6192cd9
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -204,7 +204,7 @@ create_dflt_profiles:
           script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-06fe77e2ddcefdced
+          image: ami-01999a491d50246b4
           size: t2.medium
           private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
