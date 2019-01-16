@@ -10,7 +10,7 @@
 {% set vault_address = 'http://10.1.50.149:8200' %}
 ## {# {% set vault_address = 'http://vault.aws.saltstack.net:8200' %} #}
 
-{%- set vault_info_dict = salt.cmd.run("/bin/vault login -address='" ~ vault_address ~ "' -method=userpass -format=JSON username=" ~ vault_user ~ " password=" ~ vault_user_password ~ " ") | load_json %}
+{%- set vault_info_dict = salt.cmd.run("vault login -address='" ~ vault_address ~ "' -method=userpass -format=JSON username=" ~ vault_user ~ " password=" ~ vault_user_password ~ " ") | load_json %}
 {%- set vault_token =  vault_info_dict['auth']['client_token'] %}
 
 {% set secret_path = 'secret/saltstack/automation' %}
@@ -23,7 +23,7 @@
 {% set bld_test_private_key = 'bld_test_private_key' %}
 {% set bld_test_pphrase = 'bld_test_pphrase' %}
 
-{% set vault_active_dict = salt.cmd.run("/bin/vault read -address='" ~ vault_address ~ "' -format=JSON '" ~ secret_path ~ "'") | load_json %}
+{% set vault_active_dict = salt.cmd.run("vault read -address='" ~ vault_address ~ "' -format=JSON '" ~ secret_path ~ "'") | load_json %}
 {% if vault_active_dict %}
 {% set vault_active = true %}
 {% else %}
@@ -206,6 +206,18 @@ write_aws_priv_keys_contents_to_file:
   file.append:
     - name: {{aws_access_priv_key_filename}}
     - source:  {{aws_access_priv_key_filename}}_tmp
+
+
+cleanup_aws_priv_keys_tmp_file:
+  file.absent:
+    - name: {{aws_access_priv_key_filename}}_tmp
+
+
+ensure_mode_aws_priv_keys_file:
+  module.run:
+    - name: file.set_mode
+    - path: {{aws_access_priv_key_filename}}
+    - mode: 0600
 
 
 {% if pphrase_flag ==  false %}
