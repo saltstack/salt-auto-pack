@@ -7,8 +7,7 @@
 
 {% set vault_user = 'svc-builder' %}
 {% set vault_user_password = 'kAdLNTDt*ku7R9Y' %}
-{% set vault_address = 'http://10.1.50.149:8200' %}
-## {# {% set vault_address = 'http://vault.aws.saltstack.net:8200' %} #}
+{% set vault_address = 'http://vault.aws.saltstack.net:8200' %}
 
 {%- set vault_info_dict = salt.cmd.run("vault login -address='" ~ vault_address ~ "' -method=userpass -format=JSON username=" ~ vault_user ~ " password=" ~ vault_user_password ~ " ") | load_json %}
 {%- set vault_token =  vault_info_dict['auth']['client_token'] %}
