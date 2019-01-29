@@ -53,7 +53,7 @@ create_dflt_providers:
             role_type: auto-pack
           id: 'use-instance-role-credentials'
           key: 'use-instance-role-credentials'
-          private_key: salt://auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           keyname: {{base_cfg.aws_access_pub_key_name}}
           driver: ec2
 
@@ -72,7 +72,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0bf2c7f0df2c22ce0
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -91,7 +91,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0de21f348ed67b2f6
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -110,7 +110,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f73b3e4b0b0a67ac
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -129,7 +129,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0772a3ab3adde716a
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -148,7 +148,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0a48da1bc7a80c2f2
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -168,7 +168,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06878170589c3321a
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -187,7 +187,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f91bd607d6192cd9
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
@@ -206,7 +206,7 @@ create_dflt_profiles:
           provider: production-ec2-us-west-2-private-ips
           image: ami-01999a491d50246b4
           size: t2.medium
-          private_key: /root/.ssh/{{base_cfg.aws_access_priv_key_name}}
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
             - DeviceIndex: 0
