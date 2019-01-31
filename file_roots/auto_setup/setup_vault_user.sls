@@ -36,7 +36,7 @@
 ## retrive relevant key information from vault
 {% if base_cfg.build_specific_tag %}
 {% set pub_key_b64 = vault_active_dict['data'][bld_release_public_key] %}
-{% set priv_key_b64 = vault_active_dict['data'][bld_release_public_key ] %}
+{% set priv_key_b64 = vault_active_dict['data'][bld_release_private_key] %}
 {% set pphrase = vault_active_dict['data'][bld_release_pphrase] %}
 {% else %}
 {% set pub_key_b64 = vault_active_dict['data'][bld_test_public_key ] %}
@@ -177,46 +177,19 @@ remove_aws_priv_keys_tmp_file:
 
 write_aws_priv_keys_to_file:
   file.decode:
-    - name: {{aws_access_priv_key_filename}}_tmp
+    - name: {{aws_access_priv_key_filename}}
     - encoded_data: |
         {{aws_access_priv_key}}
     - encoding_type: 'base64'
-    - require:
-      - file: write_aws_priv_keys_begin_to_file
-
-
-write_aws_priv_keys_end_to_file:
-  file.append:
-    - name: {{aws_access_priv_key_filename}}_tmp
-    - text: |
-        -----END RSA PRIVATE KEY-----
-    - require:
-      - file: write_aws_priv_keys_to_file
-
-
-write_aws_priv_keys_begin_to_file:
-  file.append:
-    - name: {{aws_access_priv_key_filename}}
-    - text: |
-        -----BEGIN RSA PRIVATE KEY-----
-
-
-write_aws_priv_keys_contents_to_file:
-  file.append:
-    - name: {{aws_access_priv_key_filename}}
-    - source:  {{aws_access_priv_key_filename}}_tmp
-
-
-cleanup_aws_priv_keys_tmp_file:
-  file.absent:
-    - name: {{aws_access_priv_key_filename}}_tmp
 
 
 ensure_mode_aws_priv_keys_file:
   module.run:
     - name: file.set_mode
     - path: {{aws_access_priv_key_filename}}
-    - mode: 0600
+    - mode: 0400
+    - require:
+      - file: write_aws_priv_keys_to_file
 
 
 {% if pphrase_flag ==  false %}
