@@ -95,6 +95,21 @@ adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_init_release_ver:
 {% endif %}
 
 
+adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_directory:
+  file.directory:
+    - name: {{dir_ubuntu_base}}
+    - force: True
+    - makedirs: True
+    - group: {{base_cfg.build_runas}}
+    - user: {{base_cfg.build_runas}}
+    - dir_mode: 755
+    - file_mode: 644
+    - recurse:
+      - user
+      - group
+      - mode
+
+
 unpack_branch_curr_salt_pack_version_{{ubuntu_ver}}_spec:
   module.run:
     - name: archive.tar
