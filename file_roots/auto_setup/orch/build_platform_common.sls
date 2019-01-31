@@ -120,17 +120,17 @@
 {% endif %}
 
 ## check use of vault and passphrase
+{% set vault_user = 'svc-builder' %}
+{% set vault_user_password = 'kAdLNTDt*ku7R9Y' %}
+{% set vault_address = 'http://vault.aws.saltstack.net:8200' %}
+
+{%- set vault_info_dict = salt.cmd.run("vault login -address='" ~ vault_address ~ "' -method=userpass -format=JSON username=" ~ vault_user ~ " password=" ~ vault_user_password ~ " ") | load_json %}
+{%- set vault_token =  vault_info_dict['auth']['client_token'] %}
+
 {% set secret_path = 'secret/saltstack/automation' %}
 
-{% set bld_test_public_key = 'bld_test_public_key' %}
-{% set bld_test_private_key = 'bld_test_private_key' %}
-{% set bld_test_pphrase = 'bld_test_pphrase' %}
-{% set bld_release_private_key = 'bld_release_private_key' %}
-{% set bld_release_public_key = 'bld_release_public_key' %}
-{% set bld_release_pphrase = 'bld_release_pphrase' %}
-
-{% set vault_active_dict = salt.cmd.run("salt " ~ build_local_id  ~ " file.file_exists /etc/salt/master.d/vault.conf -l quiet --out=json") | load_json %}
-{% if vault_active_dict[build_local_id] == True %}
+{% set vault_active_dict = salt.cmd.run("vault read -address='" ~ vault_address ~ "' -format=JSON '" ~ secret_path ~ "'") | load_json %}
+{% if vault_active_dict %}
 {% set vault_active = true %}
 {% else %}
 {% set vault_active = false %}
@@ -141,27 +141,23 @@
 {% if vault_active %}
 
 ## retrive relevant key information from vault
-## flag doing test builds for now
-{% set release_tag = true %}
+{% set bld_test_pphrase = 'bld_test_pphrase' %}
+{% set bld_release_pphrase = 'bld_release_pphrase' %}
 
-{% if release_tag %}
-{% set pphrase_dict = salt.cmd.run("salt " ~ build_local_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_pphrase ~ "' -l quiet --out=json") | load_json %}
+{% if base_cfg.build_specific_tag %}
+{% set pphrase = vault_active_dict['data'][bld_release_pphrase] %}
 {% else %}
-{% set pphrase_dict = salt.cmd.run("salt " ~ build_local_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_pphrase ~ "' -l quiet --out=json") | load_json %}
+{% set pphrase = vault_active_dict['data'][bld_test_pphrase] %}
 {% endif %}
-
-{% set pphrase = pphrase_dict[build_local_id] %}
-{% set pphrase_flag = true %}
 
 {% if pphrase|length >= 5 %}
-{% set pphrase_value = pphrase|truncate(5, True, '') %}
-{% if pphrase_value == 'ERROR' %}
-{% set pphrase_flag = false %}
+{% set pphrase_errchk_value = pphrase|truncate(5, True, '') %}
+{% if pphrase_errchk_value != 'ERROR' %}
+{% set pphrase_flag = True %}
 {% endif %}
 {% endif %}
 
 {% endif %}
-
 
 
 refresh_pillars_{{minion_platform}}:
