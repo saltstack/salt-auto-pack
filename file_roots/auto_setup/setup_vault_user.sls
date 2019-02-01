@@ -3,20 +3,27 @@
 ## comment for highlighting
 
 {% set my_id = grains.get('id') %}
+{% set my_gpg_tmpfile = '/tmp/tmp_copy_of_pub_gpg_file' %}  ## needs to match that used in setup_keyid.sls
+
+{% set vault_user = 'svc-builder' %}
+{% set vault_user_password = 'kAdLNTDt*ku7R9Y' %}
+{% set vault_address = 'http://vault.aws.saltstack.net:8200' %}
+
+{%- set vault_info_dict = salt.cmd.run("vault login -address='" ~ vault_address ~ "' -method=userpass -format=JSON username=" ~ vault_user ~ " password=" ~ vault_user_password ~ " ") | load_json %}
+{%- set vault_token =  vault_info_dict['auth']['client_token'] %}
 
 {% set secret_path = 'secret/saltstack/automation' %}
-
-{% set bld_test_public_key = 'bld_test_public_key' %}
-{% set bld_test_private_key = 'bld_test_private_key' %}
-{% set bld_test_pphrase = 'bld_test_pphrase' %}
 
 {% set bld_release_private_key = 'bld_release_private_key' %}
 {% set bld_release_public_key = 'bld_release_public_key' %}
 {% set bld_release_pphrase = 'bld_release_pphrase' %}
 
+{% set bld_test_public_key = 'bld_test_public_key' %}
+{% set bld_test_private_key = 'bld_test_private_key' %}
+{% set bld_test_pphrase = 'bld_test_pphrase' %}
 
-{% set vault_active_dict = salt.cmd.run("salt " ~ my_id  ~ " file.file_exists /etc/salt/master.d/vault.conf -l quiet --out=json") | load_json %}
-{% if vault_active_dict[my_id] == True %}
+{% set vault_active_dict = salt.cmd.run("vault read -address='" ~ vault_address ~ "' -format=JSON '" ~ secret_path ~ "'") | load_json %}
+{% if vault_active_dict %}
 {% set vault_active = true %}
 {% else %}
 {% set vault_active = false %}
@@ -28,19 +35,15 @@
 
 ## retrive relevant key information from vault
 {% if base_cfg.build_specific_tag %}
-{% set pub_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_public_key ~ "' -l quiet --out=json") | load_json %}
-{% set priv_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_private_key ~ "' -l quiet --out=json") | load_json %}
-{% set pphrase_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_release_pphrase ~ "' -l quiet --out=json") | load_json %}
+{% set pub_key_b64 = vault_active_dict['data'][bld_release_public_key] %}
+{% set priv_key_b64 = vault_active_dict['data'][bld_release_private_key] %}
+{% set pphrase = vault_active_dict['data'][bld_release_pphrase] %}
 {% else %}
-{% set pub_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_public_key ~ "' -l quiet --out=json") | load_json %}
-{% set priv_key_b64_dict  = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_private ~ "' -l quiet --out=json") | load_json %}
-{% set pphrase_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' '" ~ bld_test_pphrase ~ "' -l quiet --out=json") | load_json %}
+{% set pub_key_b64 = vault_active_dict['data'][bld_test_public_key ] %}
+{% set priv_key_b64 = vault_active_dict['data'][bld_test_private_key ] %}
+{% set pphrase = vault_active_dict['data'][bld_test_pphrase ] %}
 {% endif %}
 
-{% set pub_key_b64 = pub_key_b64_dict[my_id] %}
-{% set priv_key_b64 = priv_key_b64_dict[my_id] %}
-
-{% set pphrase = pphrase_dict[my_id] %}
 {% if pphrase|length >= 5 %}
 {% set pphrase_value = pphrase|truncate(5, True, '') %}
 {% if pphrase_value != 'ERROR' %}
@@ -50,16 +53,10 @@
 
 
 # retrieve AWS credentials from Vault
-{% set aws_access_priv_key_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'aws_access_priv_key' -l quiet --out=json") | load_json %}
-{% set aws_access_priv_key = aws_access_priv_key_dict[my_id] %}
-
-{% set subnet_id_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'subnet_id' -l quiet --out=json") | load_json %}
-{% set sec_group_id_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'sec_group_id' -l quiet --out=json") | load_json %}
-{% set aws_access_priv_key_name_dict = salt.cmd.run("salt " ~ my_id ~ " vault.read_secret '" ~ secret_path ~ "' 'aws_access_priv_key_name' -l quiet --out=json") | load_json %}
-
-{% set subnet_id =  subnet_id_dict[my_id] %}
-{% set sec_group_id = sec_group_id_dict[my_id] %}
-{% set aws_access_priv_key_name = aws_access_priv_key_name_dict[my_id] %}
+{% set aws_access_priv_key = vault_active_dict['data']['aws_access_priv_key'] %} 
+{% set subnet_id =  vault_active_dict['data']['subnet_id'] %}
+{% set sec_group_id = vault_active_dict['data']['sec_group_id'] %}
+{% set aws_access_priv_key_name = vault_active_dict['data']['aws_access_priv_key_name'] %}
 {% set aws_access_priv_key_filename = "/srv/salt/auto_setup/" ~ aws_access_priv_key_name %}
 
 
@@ -126,7 +123,7 @@ append_blanks3_write_gpg_to_pillar_file:
 generate_tmp_copy_of_pub_file:
   cmd.run:
     - name: |
-        cp {{test_file_pub}} /tmp/tmp_copy_of_pub_gpg_file
+        cp {{test_file_pub}} {{my_gpg_tmpfile}}
 
 
 append_write_gpg_priv_keys_in_pillar:
@@ -180,34 +177,19 @@ remove_aws_priv_keys_tmp_file:
 
 write_aws_priv_keys_to_file:
   file.decode:
-    - name: {{aws_access_priv_key_filename}}_tmp
+    - name: {{aws_access_priv_key_filename}}
     - encoded_data: |
         {{aws_access_priv_key}}
     - encoding_type: 'base64'
-    - require:
-      - file: write_aws_priv_keys_begin_to_file
 
 
-write_aws_priv_keys_end_to_file:
-  file.append:
-    - name: {{aws_access_priv_key_filename}}_tmp
-    - text: |
-        -----END RSA PRIVATE KEY-----
+ensure_mode_aws_priv_keys_file:
+  module.run:
+    - name: file.set_mode
+    - path: {{aws_access_priv_key_filename}}
+    - mode: 0400
     - require:
       - file: write_aws_priv_keys_to_file
-
-
-write_aws_priv_keys_begin_to_file:
-  file.append:
-    - name: {{aws_access_priv_key_filename}}
-    - text: |
-        -----BEGIN RSA PRIVATE KEY-----
-
-
-write_aws_priv_keys_contents_to_file:
-  file.append:
-    - name: {{aws_access_priv_key_filename}}
-    - source:  {{aws_access_priv_key_filename}}_tmp
 
 
 {% if pphrase_flag ==  false %}

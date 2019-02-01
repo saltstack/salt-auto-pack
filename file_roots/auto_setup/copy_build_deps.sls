@@ -63,8 +63,7 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set web_server_base_dir = base_cfg.minion_bldressrv_rootdir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
-{% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 
 mkdir_deps_packages:
   file.directory:
@@ -83,10 +82,15 @@ mkdir_deps_packages:
 copy_signed_deps:
   cmd.run:
     - name: |
-        cp -p -R {{web_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
+        cp -p -R {{nfs_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
     - require:
       - file: mkdir_deps_packages
 
 
+copy_signed_deps_done:
+ cmd.run:
+    - name: echo "copied to {{nb_srcdir}}/"
+    - require:
+      - cmd: copy_signed_deps
 

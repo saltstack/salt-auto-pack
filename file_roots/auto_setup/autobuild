@@ -38,43 +38,47 @@ _warning() {
 
 _usage() {
     echo ""
-    echo "usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean] [-m|--minion <minion to use>]"
-    echo "             [-n|--named_branch <code named branch to build>] [-r|--nfs_minion <nfs server's minion>]"
+    echo "usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean]"
+    echo "             [-g|--cloud_map <specific cloud map>] [-j|--cloud_hold]"
+    echo "             [-m|--minion <minion to use>] [-n|--named_branch <code named branch to build>]"
+    echo "             [-r|--nfs_opts <NFS server's directories>] [-o|--user_salt_only]"
     echo "             [-p|--pack_branch <git named branch>] [-s|--specific_name <specific named version to produce>]"
     echo "             [-u|--user <username for git salt and salt-pack>] [-v|--verbose]"
-    echo "             [-w|--web_nfsdir <root NFS directory on web server>"
+    echo "             [-w|--mount_nfsdir <mount root NFS directory for minions>"
     echo "             [-y|--nfs_host <hostname of NFS server>]"
-    echo "             [-z|--nfs_absdir <absolute NFS directory on web server for build product>]"
+    echo "             [-z|--nfs_absdir <absolute NFS directory on NFS server for build product>]"
     echo ""
     echo "  -b, --branch        git HEAD of branch for intended or specified major version, default 2017.7"
     echo "                      if specific_name user is not used then, salt-pack branch version is used \(for example: nightly build\)"
     echo "  -c, --clean         clean build, do not not use any dependencies already built for the branch, default not clean"
 ##    echo "  -d, --debug     debug output enabled"
-    echo "  -g, --cloud-map     cloud map to overwrite default build minions to use, default '/etc/salt/cloud.map'"
+    echo "  -g, --cloud_map     cloud map to overwrite default build minions to use, default '/etc/salt/cloud.map'"
     echo "  -h, --help          this message"
+    echo "  -j, --cloud_hold    default is to remove cloud files, cloud.map, cloud.profiles, cloud.providers, switch preserves them"
 ##    echo "  -l, --log       logging mode"
     echo "  -k, --python3       Python version to build for, False Python2, True Python 3, default False"
     echo "  -m, --minion        salt-minion installed on salt-master node to use for code checkout, default 'm7m'"
     echo "  -n, --named_branch  git named branch for example: nitrogen, my_user_branch1, no default"
+    echo "  -o, --user_salt_only only use username git's salt for build, used in conjunction with --user, default false"
     echo "  -p, --pack_branch   name of salt-pack branch to use, default develop"
-    echo "  -r, --nfs_minion    using user's NFS server's minion"
+    echo "  -r, --nfs_opts      NFS options used to mount NFS server's directories"
     echo "  -s, --specific_name specifically named version to build, default dated autobuild, for example: rc1"
     echo "  -t, --tag           build tagged release, for example: v2017.7.1 for specific release version,"
     echo "                      if PyPI doesn't contain tag, then utilizes git tag"
-    echo "  -u, --user          username for git's salt and salt-pack,  and results web server account, default saltstack"
+    echo "  -u, --user          username for git's salt and salt-pack,  and results NFS server directory, default saltstack"
     echo "                      Note: user's salt-pack changes should be against root for branch, for example: 2017.7"
     echo "  -v, --verbose       verbose output"
-    echo "  -w, --web_nfsdir    root NFS directory on web server as repository for build products"
+    echo "  -w, --mount_nfsdir  mount root NFS directory for minions as repository for build products"
     echo "  -y, --nfs_host      using user's NFS server hostname for repository for build products"
-    echo "  -z, --nfs_absdir    absolute NFS directory on NFS server for mounting web server root NFS directory, for example: /volume3"
+    echo "  -z, --nfs_absdir    absolute NFS directory on NFS server for mounting root NFS directory, for example: /volume3"
     echo ""
     echo "  creates specified packages for major platforms, signed with Salt testing keys"
     echo "  dated by current start time of execution in YYYYMMDDhhmmnnnn format"
     echo "  current platforms:"
-    echo "      Redhat 7 and 6"
+    echo "      Redhat 7"
     echo "      Debian 9 and 8"
     echo "      Raspbian 9 and 8"
-    echo "      Ubuntu 16.04 and 14.04"
+    echo "      Ubuntu 18.04, 16.04 and 14.04"
     echo ""
     echo "  script expects node to contain salt-master with auto_setup installed and"
     echo "  salt-minion installed on salt-master node, id 'm7m'"
@@ -95,23 +99,39 @@ RELEASE_SPECIFIC_NAME_BRANCH=''
 RELEASE_DSIG_BRANCH=''
 RELEASE_SPECIFIC_NAME_USER=''
 RELEASE_SPECIFIC_PACK_BRANCH=''
+RELEASE_SPECIFIC_USER_SALT_ONLY=False
 PYTHON3_FLAG=False
 
-## Web Server Defaults, note req. match values in auto_base_map.jinja
-DEFAULT_NFS_MINION='bldressrv'
-DEFAULT_NFS_HOST='nas01.c7.saltstack.net'
-DEFAULT_NFS_ABSDIR='/volume3'
-DEFAULT_WEB_NFSDIR='/build_res'
+## NFS Mount Defaults, note req. match values in auto_base_map.jinja
+## DEFAULT_NFS_OPTS='bldressrv'
+## ## DEFAULT_NFS_HOST='nas01.c7.saltstack.net'
+## DEFAULT_NFS_HOST='10.1.0.98'
+## DEFAULT_NFS_ABSDIR='/volume3'
+## DEFAULT_MOUNT_NFSDIR='/mnt_build_res'
 
-NFS_MINION="${DEFAULT_NFS_MINION}"
+DEFAULT_NFS_OPTS='-t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport'
+DEFAULT_NFS_HOST='fs-6e0b6fc6.efs.us-west-2.amazonaws.com'
+DEFAULT_NFS_ABSDIR='/'
+DEFAULT_MOUNT_NFSDIR='/mnt_build_res'
+
+NFS_OPTS="${DEFAULT_NFS_OPTS}"
 NFS_HOST="${DEFAULT_NFS_HOST}"
 NFS_ABSDIR="${DEFAULT_NFS_ABSDIR}"
-WEB_NFSDIR="${DEFAULT_WEB_NFSDIR}"
+MOUNT_NFSDIR="${DEFAULT_MOUNT_NFSDIR}"
 
 CLOUD_MAP=''
+CLOUD_HOLD_FLAG=False
 
 ## minion resident on Salt-Master node
 CODE_MINION='m7m'
+
+### TBD THIS AREA IS TO BE REPLACED WITH VALUES FROM VAULT
+### AND IS ONLY HERE AS A TEMPORARY STOP-GAP
+
+SUBNETID='subnet-to-be-determined'
+SECGROUPID='sec-group-to-be-determined'
+AWS_ACCESS_PRIV_KEY_NAME='aws-file-key-name-to-be-determined'
+
 
 
 ##    -d | --debug )  DEBUG=True; shift ;;
@@ -126,16 +146,18 @@ while true; do
     -c | --clean ) CLEAN_BLD=1; shift ;;
     -g | --cloud_map ) CLOUD_MAP="$2"; shift 2 ;;
     -h | --help ) USAGE_HELP=true; shift ;;
+    -j | --cloud_hold ) CLOUD_HOLD_FLAG=True; shift ;;
     -k | --python3 ) PYTHON3_FLAG=True; shift ;;
     -m | --minion ) CODE_MINION="$2"; shift 2 ;;
     -n | --named_branch ) RELEASE_CODE_NAMED_BRANCH="$2"; shift 2 ;;
+    -o | --user_salt_ony) RELEASE_SPECIFIC_USER_SALT_ONLY=True; shift ;;
     -p | --pack_branch) RELEASE_SPECIFIC_PACK_BRANCH="$2"; shift 2 ;;
-    -r | --nfs_minion ) NFS_MINION="$2"; shift 2 ;;
+    -r | --nfs_opts) NFS_OPTS="$2"; shift 2 ;;
     -s | --specific_name) RELEASE_SPECIFIC_NAME_BRANCH="$2"; shift 2 ;;
     -t | --tag ) RELEASE_TAG="$2"; ATTEMPT_PYPI=1; shift 2 ;;
     -u | --username) RELEASE_SPECIFIC_NAME_USER="$2"; shift 2 ;;
     -v | --verbose ) VERBOSE=1; shift ;;
-    -w | --web_nfsdir ) WEB_NFSDIR="$2"; shift 2 ;;
+    -w | --mount_nfsdir ) MOUNT_NFSDIR="$2"; shift 2 ;;
     -y | --nfs_host ) NFS_HOST="$2"; shift 2 ;;
     -z | --nfs_absdir ) NFS_ABSDIR="$2"; shift 2 ;;
     -- ) shift; break ;;
@@ -161,6 +183,9 @@ curr_date="${date_long::-2}"
 APT_DATE="$(date +"%a, %d %b %Y %T %z")"
 RPM_DATE="$(date +"%a %b %d %Y")"
 
+# unique value for this run
+UNIQUE_VALUE=$$
+
 CURRDIR=$(pwd)
 
 PILLAR_DIR='/srv/pillar'
@@ -183,17 +208,26 @@ else
     RELEASE_DSIG_BRANCH=${RELEASE_SPECIFIC_NAME_BRANCH}
 fi
 
+## output Branch signifier
+echo "Release DSIG Branch is \'${RELEASE_DSIG_BRANCH}\'"
+
+
 cat <<@EOF > "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set branch_tag = '${BRANCH_TAG}' %}
 {% set build_dsig = '${RELEASE_DSIG_BRANCH}' %}
 {% set build_local_minion = '${CODE_MINION}' %}
-{% set nfs_minion = '${NFS_MINION}' %}
+{% set nfs_opts = '${NFS_OPTS}' %}
 {% set nfs_host = '${NFS_HOST}' %}
 {% set nfs_absdir = '${NFS_ABSDIR}' %}
-{% set web_nfsdir = '${WEB_NFSDIR}' %}
+{% set mount_nfsdir = '${MOUNT_NFSDIR}' %}
 {% set build_apt_date = '${APT_DATE}' %}
 {% set build_rpm_date = '${RPM_DATE}' %}
 {% set build_py3 = ${PYTHON3_FLAG} %}
+{% set build_cloud_hold = ${CLOUD_HOLD_FLAG} %}
+{% set uniqueval = ${UNIQUE_VALUE} %}
+{% set subnet_id = '${SUBNETID}' %}
+{% set sec_group_id = '${SECGROUPID}' %}
+{% set aws_access_priv_key_name = '${AWS_ACCESS_PRIV_KEY_NAME}' %}
 @EOF
 
 if [[ ${CLEAN_BLD} -ge 1 ]]; then
@@ -226,6 +260,12 @@ cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 @EOF
 fi
 
+if [[ -n "${RELEASE_SPECIFIC_USER_SALT_ONLY}" ]]; then
+cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
+{% set specific_name_user_salt_only = ${RELEASE_SPECIFIC_USER_SALT_ONLY} %}
+@EOF
+fi
+
 if [[ -n "${CLOUD_MAP}" ]]; then
 cat <<@EOF >> "${PILLAR_AUTO_SETUP_TAG_ABSFILE}"
 {% set build_cloud_map = '${CLOUD_MAP}' %}
@@ -248,15 +288,22 @@ fi
 
 _display "$SCRIPTNAME: autobuild started"
 
-
 salt ${CODE_MINION} saltutil.refresh_pillar || {
     _error "$SCRIPTNAME: refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
+# setup environment and reactors
 salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
     _error "$SCRIPTNAME:state for auto_setup setup_envir failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
+# ensure reactor changes are read and give time for salt-minion to come back up
+systemctl restart salt-minion
+sleep 10
+
+salt ${CODE_MINION} state.sls auto_setup.setup_local_mount || {
+    _warning "$SCRIPTNAME:state for auto_setup setup_local_mount failed to function for '${BRANCH_TAG}', retcode '${$?}'";
+}
 
 salt ${CODE_MINION} state.sls auto_setup.setup_tagged_from_pypi || {
     _warning "$SCRIPTNAME:state for auto_setup setup tagged version from PyPI failed for '${BRANCH_TAG}', retcode '${$?}'";
@@ -266,8 +313,13 @@ salt ${CODE_MINION} state.sls auto_setup || {
     _error "$SCRIPTNAME:state for auto_setup failed to function for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
-salt ${CODE_MINION} state.sls auto_setup.setup_vault || {
-    _error "$SCRIPTNAME:state for auto_setup vault keys for '${BRANCH_TAG}', retcode '${$?}'";
+salt ${CODE_MINION} state.sls auto_setup.setup_vault_user || {
+    _error "$SCRIPTNAME:state for auto_setup user vault keys for '${BRANCH_TAG}', retcode '${$?}'";
+}
+
+# refresh again after any updates from vault values to pillar
+salt ${CODE_MINION} saltutil.refresh_pillar || {
+    _error "$SCRIPTNAME: secondary refresh pillar for '${BRANCH_TAG}', retcode '${$?}'";
 }
 
 salt ${CODE_MINION} state.sls auto_setup.setup_keyid || {
@@ -283,13 +335,10 @@ salt ${CODE_MINION} state.sls auto_setup.setup_cloud || {
 }
 
 _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from '${BRANCH_TAG}' on build minions from cloud map ${CLOUD_MAP}"
-## salt-run state.orchestrate auto_setup.orch.build_for_minions || {
-##     _warning "$SCRIPTNAME:orch for build_for_minions failed to build '${BRANCH_TAG}', retcode '${$?}'";
-## }
-## _display "$SCRIPTNAME: autobuild via orchstration finished for modified salt from '${BRANCH_TAG}' on build minion from cloud map ${CLOUD_MAP}"
 
 # get list from salt-cloud and remove [ and ] on first and last line
-node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.opennebula | .opennebula | keys' | tail -n +2 | head -n -1)
+## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
+node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
 
 for ndx in ${node_list}
 do

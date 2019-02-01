@@ -61,14 +61,19 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set web_server_base_dir = base_cfg.minion_bldressrv_rootdir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
-{% set web_server_archive_dir = web_server_base_dir ~ '/archive/' ~ nb_destdir %}
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+{% set nfs_server_archive_dir = nfs_server_base_dir ~ '/archive/' ~ nb_destdir %}
 
 
-## {# scp -i {{base_cfg.build_homedir}}/.ssh/{{base_cfg.rsa_priv_key_file}} -o StrictHostKeyChecking='no' -p -r {{nb_srcdir}}/* {{base_cfg.minion_bldressrv_username}}@{{base_cfg.minion_bldressrv_hostname}}:{{web_server_archive_dir}}/ #}
 copy_signed_packages:
   cmd.run:
     - name: |
-        cp -p -R {{nb_srcdir}}/* {{web_server_archive_dir}}/
-    - runas: {{base_cfg.build_runas}}
+        cp -p -R {{nb_srcdir}}/* {{nfs_server_archive_dir}}/
+
+
+copy_signed_packages_done:
+ cmd.run:
+    - name: echo "copied to {{nfs_server_archive_dir}}/"
+    - require:
+      - cmd: copy_signed_packages
 
