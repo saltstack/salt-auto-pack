@@ -2,7 +2,9 @@
 
 # comment to induce highlighting
 
-{% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
+{% set default_user = 'saltstack' %}
+{% set specific_user = pillar.get('specific_name_user', default_user) %}
+{% set specific_user_salt_only = pillar.get('specific_name_user_salt_only', false) %}
 {% set specific_pack_branch = pillar.get('specific_pack_branch', 'develop') %}
 {% set build_branch = base_cfg.build_year ~ '_' ~ base_cfg.build_major_ver %}
 
@@ -39,7 +41,11 @@ build_create_salt_pack_dir:
 
 retrieve_desired_salt_pack:
   git.latest:
+{% if specific_user_salt_only %}
+    - name: https://github.com/{{default_user}}/{{salt_pack_version}}.git
+{% else %}
     - name: https://github.com/{{specific_user}}/{{salt_pack_version}}.git
+{% endif %}
     - rev: {{specific_pack_branch}}
     - target: {{base_cfg.build_salt_pack_dir}}
     - user: {{base_cfg.build_runas}}
@@ -106,8 +112,8 @@ copy_working_branch_to_tagged_file_directory:
     - name: cp -f -R {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{build_branch}}/* {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/
     - require:
       - cmd: copy_working_branch_to_tagged_file_salt_directory
- 
-   
+
+
 ensure_dirs_copied:
   file.exists:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/ubuntu_pkg.sls

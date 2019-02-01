@@ -10,16 +10,28 @@
 # get build clean or with currently build dependencies, default not clean
 {% set build_clean = pillar.get('build_clean', 0 ) %}
 
+# get build cloud_hold, default remove cloud files
+{% set build_cloud_hold = pillar.get('build_cloud_hold', false ) %}
+
+{% set uniqueval = pillar.get('uniqueval', '') %}
+
+
+### TBD THIS AREA IS TO BE REPLACED WITH VALUES FROM VAULT
+### AND IS ONLY HERE AS A TEMPORARY STOP-GAP
+{% set subnet_id = pillar.get('subnet_id', 'Subnet Id is missing') %}
+{% set sec_group_id = pillar.get('sec_group_id', 'Security Group Id is missing') %}
+{% set aws_access_priv_key_name = pillar.get('aws_access_priv_key_name', 'AWS Access key is missing') %}
+{% set aws_access_pub_key_name_list = aws_access_priv_key_name .split(".") %}
+{% set aws_access_pub_key_name = aws_access_pub_key_name_list[0] %}
+
+
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
 
 
-## Web Server values
-{% set minion_bldressrv             = pillar.get('web_minion', 'bldressrv') %}
-{% set minion_bldressrv_username    = pillar.get('web_user', 'root') %}
-{% set minion_bldressrv_hostname    = pillar.get('web_host') %}
-{% set minion_bldressrv_nfs_absdir  = pillar.get('nfs_absdir') %}
-{% set minion_bldressrv_nfsrootdir  = pillar.get('web_nfsdir') %}
-{% set minion_bldressrv_rootdir     = minion_bldressrv_nfsrootdir ~ '/autobuild' %}
+## NFS Mount values
+{% set minion_nfsabsdir = pillar.get('nfs_absdir') %}
+{% set minion_mount_nfsrootdir = pillar.get('mount_nfsdir') %}
+{% set minion_mount_nfsbasedir = minion_mount_nfsrootdir ~ '/autobuild' %}
 
 
 ## generate build labels
@@ -64,24 +76,6 @@
 {% set build_salt_dir = build_homedir ~ '/salt_dir' %}
 {% set build_salt_pypi_dir = build_homedir ~ '/pypi_dir' %}
 {% set build_salt_pack_dir = build_homedir ~ '/salt_pack_dir' %}
-
-
-## rsa files
-## state file to setup public and private rsa keys for bld_res_server on minion
-## assumes user home /.ssh as destination directory
-## {#{% set rsa_priv_key_file = pillar.get('bld_res_server_id_rsa_priv_keyname', None) %}#}
-## {#{% set rsa_pub_key_file = 'bld_res_id_rsa.pub' %}#}
-
-## {# {% set rsa_file_name = 'rsa_autobuild' %} #}
-## {# {% set rsa_priv_key_file = rsa_file_name %} #}
-## {# {% set rsa_pub_key_file =  rsa_file_name ~ '.pub' %} #}
-
-## {#{% set rsa_pub_key_source_file = 'salt://auto_setup/' ~ rsa_pub_key_file %}#}
-
-## need to make base /srv/salt not so hard-coded, this fine for now
-##{#{% set rsa_key_dir = build_homedir ~ '/.ssh' %}#}
-## {# {% set rsa_key_dir = '/srv/salt' %} #}
-## {# {% set rsa_pub_key_absfile = rsa_key_dir ~ '/' ~ rsa_pub_key_file %} #}
-## {# {% set rsa_priv_key_absfile = rsa_key_dir ~ '/' ~ rsa_priv_key_file %} #}
-
+{% set build_salt_reactor_file = '/srv/reactor/auto_pack_event.sls' %}
+{% set build_salt_reactor_conf = '/etc/salt/master.d/reactor.conf' %}
 
