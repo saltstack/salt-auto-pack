@@ -338,13 +338,20 @@ _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from
 
 # get list from salt-cloud and remove [ and ] on first and last line
 ## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
-node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
+
+## running into issues with Ubuntu 18.04 and being called async when starting async, going to try leaving it to last and call directly
+## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
+node_list=$(salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort)       ## for ec2
 
 for ndx in ${node_list}
 do
     nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
     salt "${nx}" saltutil.refresh_grains
-    salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+    if [[ $nx == svc-builder-autotest-u18m* ]]; then
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+    else
+        salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+    fi
 done
 
 _display "$SCRIPTNAME: autobuild finished"
