@@ -86,7 +86,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3.3
+          script_args: stable 2019.2.0
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0de21f348ed67b2f6
@@ -105,7 +105,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3.3
+          script_args: stable 2019.2.0
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f73b3e4b0b0a67ac
@@ -124,7 +124,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.0
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0772a3ab3adde716a
@@ -143,7 +143,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.0
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0a48da1bc7a80c2f2
@@ -162,7 +162,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args:  -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.0
 {%- if build_py3 == False %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -201,7 +201,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.0
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-01999a491d50246b4
@@ -220,7 +220,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args:  -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.0
 {%- endif %}
 
 
