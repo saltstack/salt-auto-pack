@@ -60,8 +60,11 @@ adjust_salt_pack_master_pillar_top_match:
               - auto_setup.gpg_keys_do_not_commit
               - auto_setup.tag_build_dsig
 
-            'G@os_family:Redhat and G@os:Amazon':
+            'G@os_family:Redhat and G@os:Amazon and not G@osmajorrelease:2':
               - auto_setup.amazon
+
+            'G@os_family:Redhat and G@os:Amazon and G@osmajorrelease:2':
+              - auto_setup.amazon2
 
             'G@os_family:Redhat and G@osmajorrelease:7 and not G@os:Amazon':
               - auto_setup.redhat7

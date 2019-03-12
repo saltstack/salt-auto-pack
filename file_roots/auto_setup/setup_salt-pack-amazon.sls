@@ -2,10 +2,20 @@
 
 ## comment for highlighting
 
-{% set build_py3 = pillar.get('build_py3', False) %}
-{% if build_py3 == False %}
+## Python 3 support on Amazon only for Amazon Linux 2 (amzn2)
+## Python 2 support on Amazon only for Amazon Linux (amzn), 
+## Python 2 Amazon Linux 2 get redirected to use RHEL 7
 
-## No Python 3 support on Amazon at present time
+{% set build_py3 = pillar.get('build_py3', False) %}
+{% if build_py3 %}
+{% set py_ver = 'py3' %}
+{% set changelog_text_py_ver = ' for Python 3' %}
+{% set platform_supported = ['amzn2'] %}
+{% else %}
+{% set py_ver = 'py2' %}
+{% set changelog_text_py_ver = ' for Python 2' %}
+{% set platform_supported = ['amzn'] %}
+{% endif %}
 
 ## Amazon Latest, copies from Redhat 7 which should be run first
 
@@ -35,13 +45,18 @@
 
 {% set specific_user = pillar.get( 'specific_name_user', 'saltstack') %}
 
-build_cp_salt_targz_amzn_sources:
+
+{% for platform_ver in platform_supported %}
+
+{% set dir_platform_base = base_cfg.build_salt_pack_dir ~ '/file_roots/pkg/salt/' ~ base_cfg.build_version ~ '/' ~ platform_ver %}
+
+build_cp_salt_targz_{{platform_ver}}_sources:
   file.copy:
 {% if base_cfg.build_specific_tag %}
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/sources
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
 {% else %}
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/sources
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
@@ -54,9 +69,9 @@ build_cp_salt_targz_amzn_sources:
 
 {% for rpmfile in rpmfiles %}
 
-build_cp_salt_targz_amzn_{{rpmfile.replace('.', '-')}}:
+build_cp_salt_targz_{{platform_ver}}_{{rpmfile.replace('.', '-')}}:
   file.copy:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/sources
     - source: {{base_cfg.build_salt_dir}}/pkg/rpm/{{rpmfile}}
     - force: True
     - makedirs: True
@@ -68,9 +83,9 @@ build_cp_salt_targz_amzn_{{rpmfile.replace('.', '-')}}:
 
 
 ## TODO does salt-proxy@.service need a symbolic link in pkg/rpm
-build_cp_salt_targz_amzn_special_salt-proxy-service:
+build_cp_salt_targz_{{platform_ver}}_special_salt-proxy-service:
   file.copy:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/sources
     - source: {{base_cfg.build_salt_dir}}/pkg/salt-proxy@.service
     - force: True
     - makedirs: True
@@ -79,48 +94,48 @@ build_cp_salt_targz_amzn_special_salt-proxy-service:
     - subdir: True
 
 
-build_cp_salt_targz_amzn_salt-fish-completions:
+build_cp_salt_targz_{{platform_ver}}_salt-fish-completions:
   cmd.run:
-    - name: cp -R {{base_cfg.build_salt_dir}}/pkg/fish-completions {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/sources/
+    - name: cp -R {{base_cfg.build_salt_dir}}/pkg/fish-completions {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/sources/
     - runas: {{base_cfg.build_runas}}
 
 
 {% if base_cfg.build_specific_tag %}
 
-adjust_branch_curr_salt_pack_amzn_spec:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec:
   file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - pattern: 'tobereplaced_date'
     - repl: '%{nil}'
     - show_changes: True
     - count: 1
 
 
-adjust_branch_curr_salt_pack_amzn_spec_version:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_version:
   file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - pattern: 'Version: {{default_branch_version_dotted}}'
     - repl: 'Version: {{base_cfg.build_dsig}}'
     - show_changes: True
     - count: 1
     - require:
-      - file: adjust_branch_curr_salt_pack_amzn_spec
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec
 
 
-adjust_branch_curr_salt_pack_amzn_spec_release:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release:
   file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - pattern: 'Release: 0'
     - repl: 'Release: {{release_level}}'
     - show_changes: True
     - count: 1
     - require:
-      - file: adjust_branch_curr_salt_pack_amzn_spec_version
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_version
 
 
-adjust_branch_curr_salt_pack_amzn_spec_release_changelog:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog:
   file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - mode: insert
     - after: "%changelog"
     - content: |
@@ -130,32 +145,32 @@ adjust_branch_curr_salt_pack_amzn_spec_release_changelog:
         remove_this_line_after_insertion
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_amzn_spec_release
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release
 
 
-adjust_branch_curr_salt_pack_amzn_spec_release_changelog_cleanup:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog_cleanup:
   file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - mode: delete
     - match: 'remove_this_line_after_insertion'
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_amzn_spec_release_changelog
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog
 
 {% else %}
 
-adjust_branch_curr_salt_pack_amzn_spec:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec:
   file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - pattern: '{{pattern_text_date}}'
     - repl: '{{replacement_text_date}}'
     - show_changes: True
     - count: 1
 
 
-adjust_branch_curr_salt_pack_amzn_spec_release_changelog:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog:
   file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - mode: insert
     - after: "%changelog"
     - content: |
@@ -165,23 +180,23 @@ adjust_branch_curr_salt_pack_amzn_spec_release_changelog:
         remove_this_line_after_insertion
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_amzn_spec
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec
 
 
-adjust_branch_curr_salt_pack_amzn_spec_release_changelog_cleanup:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog_cleanup:
   file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
     - mode: delete
     - match: 'remove_this_line_after_insertion'
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_amzn_spec_release_changelog
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog
 
 
 {% endif %}
 
 
-adjust_branch_curr_salt_pack_amzn_pkgbuild:
+adjust_branch_curr_salt_pack_{{platform_ver}}_pkgbuild:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/pkgbuild.sls
     - pattern: '{{pattern_text_date}}'
@@ -189,30 +204,20 @@ adjust_branch_curr_salt_pack_amzn_pkgbuild:
     - show_changes: True
     - count: 1
 
-adjust_branch_curr_salt_pack_amzn_version_pkgbuild:
+
+adjust_branch_curr_salt_pack_{{platform_ver}}_version_pkgbuild:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_version}}/pkgbuild.sls
     - pattern: '{{pattern_text_date}}'
     - repl: '{{replacement_text_date}}'
     - show_changes: True
 
-update_amzn_from_rhel7_init:
-  cmd.run:
-    - name: cp {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/init.sls {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/init.sls
-    - runas: {{base_cfg.build_runas}}
-
-
-adjust_amzn_file_init:
-  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/amzn/init.sls
-    - pattern: 'redhat'
-    - repl: 'amazon'
-    - show_changes: True
+{% endfor %}
 
 
 {% if base_cfg.build_specific_tag %}
 
-update_versions_amzn_{{base_cfg.build_version}}:
+update_versions_{{platform_ver}}_{{base_cfg.build_version}}:
  file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/amazon_pkg.sls
     - pattern: '{{build_branch}}'
@@ -221,5 +226,3 @@ update_versions_amzn_{{base_cfg.build_version}}:
 
 {% endif %}
 
-## end of not build_py3
-{% endif %}

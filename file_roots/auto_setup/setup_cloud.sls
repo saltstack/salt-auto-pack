@@ -236,6 +236,8 @@ create_dflt_map:
     - text: |
         svc-builder-cent7{{unique_postfix}}:
           - svc-builder-autotest-c7m{{unique_postfix}}
+        svc-builder-amzn2{{unique_postfix}}:
+          - svc-builder-autotest-amzn2{{unique_postfix}}
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
         svc-builder-u1804{{unique_postfix}}:
