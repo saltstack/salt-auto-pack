@@ -1,5 +1,14 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
+## determine if build Python 3
+{% set build_py3 = pillar.get('build_py3', False) %}
+{% if build_py3 %}
+{% set build_py_ver = 'py3' %}
+{% else %}
+{% set build_py_ver = 'py2' %}
+{% endif %}
+
+
 # get minion target, local minion and nfs host from pillar data
 {% set minion_tgt = pillar.get('minion_tgt', 'UKNOWN-MINION') %}
 {% set build_local_id = pillar.get('build_local_minion', 'm7m') %}
@@ -28,8 +37,14 @@
 
 {% if my_tgt_os == 'amazon' %}
 {% set tgt_build_os_name = my_tgt_os %}
+{% if build_py3 %}
+## only build Amazon Linux 2 for Py3, Amazon Linux 1 for Py2
+{% set tgt_build_os_version = '2' %}
+{% set tgt_build_release = 'amzn' ~ tgt_build_os_version %}
+{% else %}
 {% set tgt_build_os_version = 'latest' %}
 {% set tgt_build_release = 'amzn' %}
+{% endif %}
 {% set tgt_build_arch = my_tgt_osarch %}
 {% else %}
 {% set tgt_build_os_name = my_tgt_os_family %}
@@ -61,15 +76,6 @@
 
 {% set tgt_build_arch = my_tgt_osarch %}
 
-{% endif %}
-
-
-## determine if build Python 3
-{% set build_py3 = pillar.get('build_py3', False) %}
-{% if build_py3 %}
-{% set build_py_ver = 'py3' %}
-{% else %}
-{% set build_py_ver = 'py2' %}
 {% endif %}
 
 
@@ -204,6 +210,13 @@ ensure_nfs_dir_exists_{{minion_platform}}:
         user: nobody
         group: nogroup
         mode: 775
+
+umount_any_previous_mount_nfs_{{minion_platform}}:
+  salt.function:
+    - name: cmd.run
+    - tgt: {{minion_tgt}}
+    - arg:
+      - umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
 
 
 mount_nfs_{{minion_platform}}:
