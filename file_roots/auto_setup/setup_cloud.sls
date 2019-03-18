@@ -89,7 +89,7 @@ create_dflt_profiles:
           script_args: stable 2019.2.0
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0de21f348ed67b2f6
+          image: ami-0033222265d04439f
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
