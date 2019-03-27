@@ -127,7 +127,7 @@ create_dflt_profiles:
           script_args: stable 2019.2.0
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0772a3ab3adde716a
+          image: ami-0d5f916f52836397d
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -185,7 +185,7 @@ create_dflt_profiles:
           script_args: stable 2016.11
         svc-builder-debian8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0f91bd607d6192cd9
+          image: ami-0853e07df32d2cd50
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips

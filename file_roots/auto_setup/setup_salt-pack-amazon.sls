@@ -217,7 +217,7 @@ adjust_branch_curr_salt_pack_{{platform_ver}}_version_pkgbuild:
 
 {% if base_cfg.build_specific_tag %}
 
-update_versions_{{platform_ver}}_{{base_cfg.build_version}}:
+update_versions_amazon_{{base_cfg.build_version}}:
  file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/amazon_pkg.sls
     - pattern: '{{build_branch}}'
