@@ -164,6 +164,25 @@ create_dflt_profiles:
           sync_after_install: grains
           script_args: stable 2019.2.0
 {%- if build_py3 == False %}
+        svc-builder-u1810{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-091d73531e691cb5e
+          size: t2.medium
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: stable 2019.2.0
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06878170589c3321a
@@ -239,13 +258,15 @@ create_dflt_map:
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
         svc-builder-u1804{{unique_postfix}}:
-          - svc-builder-autotest-u18m{{unique_postfix}}
+          - svc-builder-autotest-u1804m{{unique_postfix}}
         svc-builder-u1604{{unique_postfix}}:
           - svc-builder-autotest-u16m{{unique_postfix}}
 {%- if build_py3 %}
         svc-builder-amzn2{{unique_postfix}}:
           - svc-builder-autotest-amzn2{{unique_postfix}}
 {%- else %}
+        svc-builder-u1810{{unique_postfix}}:
+          - svc-builder-autotest-u1810m{{unique_postfix}}
         svc-builder-amzn1{{unique_postfix}}:
           - svc-builder-autotest-amzn1{{unique_postfix}}
         svc-builder-debian8{{unique_postfix}}:

@@ -69,7 +69,7 @@ write_build_pkgbuild_file:
         {% raw %}
         {% if build_version != '' %}
         include:
-            - .versions.{{build_version}}.pkgbuild
+            - versions.{{build_version}}.pkgbuild
         {% endif %}
         {% endraw %}
 
