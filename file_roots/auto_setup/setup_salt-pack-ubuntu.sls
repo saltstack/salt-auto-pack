@@ -14,7 +14,7 @@
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
-{% set ubuntu_supported = ['ubuntu1804', 'ubuntu1604', 'ubuntu1404'] %}
+{% set ubuntu_supported = ['ubuntu1810', 'ubuntu1804', 'ubuntu1604', 'ubuntu1404'] %}
 {% endif %}
 
 {% if base_cfg.build_specific_tag %}
