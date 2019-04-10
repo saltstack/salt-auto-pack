@@ -220,11 +220,11 @@ umount_any_previous_mount_nfs_{{minion_platform}}:
 
 
 mount_nfs_{{minion_platform}}:
-  salt.function:
-    - name: cmd.run
+  salt.state:
     - tgt: {{minion_tgt}}
-    - arg:
-      - mount {{nfs_opts}} {{nfs_host}}:{{base_cfg.minion_nfsabsdir}} {{base_cfg.minion_mount_nfsrootdir}}
+    - queue: True
+    - sls:
+      - auto_setup.setup_local_mount
     - require:
       - salt: ensure_nfs_dir_exists_{{minion_platform}}
 
@@ -336,13 +336,24 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
 
 
 cleanup_mount_nfs_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.setup_local_umount
+    - require:
+      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+
+
+## allow for umount to complete (90sec - give 120 for safety)
+cleanup_tgt_settle_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
+      - sleep 120 
     - require:
-      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: cleanup_mount_nfs_{{minion_platform}}
 
 
 publish_event_finished_build_{{minion_platform}}:
@@ -352,6 +363,5 @@ publish_event_finished_build_{{minion_platform}}:
     - sls:
       - auto_setup.event_build_finished
     - require:
-      - salt: cleanup_mount_nfs_{{minion_platform}}
-
+      - salt: cleanup_tgt_settle_{{minion_platform}}
 
