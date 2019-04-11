@@ -211,12 +211,13 @@ ensure_nfs_dir_exists_{{minion_platform}}:
         group: nogroup
         mode: 775
 
+
 umount_any_previous_mount_nfs_{{minion_platform}}:
-  salt.function:
-    - name: cmd.run
+  salt.state:
     - tgt: {{minion_tgt}}
-    - arg:
-      - umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
+    - queue: True
+    - sls:
+      - auto_setup.setup_local_umount
 
 
 mount_nfs_{{minion_platform}}:
