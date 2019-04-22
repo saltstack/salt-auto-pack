@@ -69,7 +69,11 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+{% set repo_url = 'http://repo.saltstack.com' %}
+{% set web_compatible_dir = platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ web_compatible_dir %}
+
 
 mkdir_deps_packages:
   file.directory:
@@ -85,10 +89,21 @@ mkdir_deps_packages:
         - mode
 
 
+copy_repo_latest_deps:
+  cmd.run:
+    - name: |
+        wget --recursive --no-parent --no-check-certificate  --convert-links --reject index* --no-host-directories --cut-dirs=5  {{repo_url}}/{{web_compatible_dir}}/latest/
+    - cwd: {{nb_srcdir}}/
+    - runas: {{base_cfg.build_runas}}
+    - use_vt: True
+    - require:
+      - file: mkdir_deps_packages
+
+
 copy_signed_deps:
   cmd.run:
     - name: |
-        cp -p -R {{nfs_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
+        cp -n -v -u -p -R {{nfs_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
     - require:
       - file: mkdir_deps_packages

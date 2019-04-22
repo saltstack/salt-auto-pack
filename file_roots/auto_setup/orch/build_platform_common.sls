@@ -290,6 +290,16 @@ build_highstate_{{base_cfg.build_version}}_{{minion_platform}}:
         build_arch: {{tgt_build_arch}}
 
 
+copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.copy_build_deps_check_repo
+    - require:
+      - salt: build_highstate_{{base_cfg.build_version}}_{{minion_platform}}
+
+
 sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
@@ -303,7 +313,7 @@ sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
         gpg_passphrase: {{pphrase}}
 {%- endif %}
     - require:
-      - salt: build_highstate_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}
 
 
 remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
@@ -352,7 +362,7 @@ cleanup_tgt_settle_{{minion_platform}}:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - sleep 120 
+      - sleep 120
     - require:
       - salt: cleanup_mount_nfs_{{minion_platform}}
 
