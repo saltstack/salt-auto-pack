@@ -282,10 +282,11 @@ create_dflt_map:
 ##         svc-builder-amzn2{{unique_postfix}}:
 ##           - svc-builder-autotest-amzn2{{unique_postfix}}
 
+ensure_updated_bootstrap:
+  cmd.run:
+    - name: "salt-cloud -l quiet -y -u"
 
 ## startup build minions specified in cloud map
-
-
 launch_cloud_map:
   cmd.run:
     - name: "salt-cloud -l quiet -y -P -m {{build_cloud_map}}"
