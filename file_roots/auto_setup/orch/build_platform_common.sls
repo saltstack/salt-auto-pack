@@ -316,12 +316,14 @@ sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
       - salt: copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}
 
 
-remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
+remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.function:
     - name: file.remove
     - tgt: {{minion_tgt}}
     - arg:
-      - {{nfs_server_base_dir}}/{{base_cfg.build_version_dotted}}
+      - {{nfs_server_branch_symlink}}
+    - onlyif:
+        - ls {{nfs_server_branch_symlink}}
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
 
@@ -333,6 +335,8 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
     - arg:
       - {{nfs_server_archive_dir}}
       - {{nfs_server_branch_symlink}}
+    - require:
+      - salt: remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}
 
 
 copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:

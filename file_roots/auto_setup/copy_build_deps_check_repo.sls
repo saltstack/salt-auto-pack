@@ -76,9 +76,11 @@
 
 {% set copy_repo_check_script_file = base_cfg.build_homedir ~ '/copy_deps_repo_check.sh' %}
 
-{% if platform == 'debian' or platform == 'ubuntu' %}
+{% if platform == 'debian' or (platform == 'ubuntu' and os_version != '18.10') %}
 ## only need to perform this check for Debian or Ubuntu families
+## don't release Ubuntu 18.10 so no need for it
 
+{% set repo_version = base_cfg.build_year ~ '.' ~ base_cfg.build_major_ver %}
 
 cleanup_deps_tmpdir:
   file.absent:
@@ -102,7 +104,7 @@ mkdir_deps_tmpdir:
 copy_repo_latest_deps:
   cmd.run:
     - name: |
-        wget --recursive --no-parent --no-check-certificate  --convert-links --reject index* --no-host-directories --cut-dirs=5  {{repo_url}}/{{web_compatible_dir}}/latest/
+        wget --recursive --no-parent --no-check-certificate  --convert-links --reject index* --no-host-directories --cut-dirs=5  {{repo_url}}/{{web_compatible_dir}}/{{repo_version}}/
     - cwd: {{base_cfg.build_salt_tmp_dir}}/
     - runas: {{base_cfg.build_runas}}
     - use_vt: True
@@ -191,9 +193,15 @@ execute_copy_script:
 
 copy_repo_deps_done:
  cmd.run:
-    - name: echo "copied to {{nb_srcdir}} those repo products that are unchanged/"
+    - name: echo "copied to {{nb_srcdir}} those repo products that are unchanged"
     - require:
-      - cmd: execute_copy_script 
+      - cmd: execute_copy_script
+
+{% else %}
+
+copy_repo_deps_done:
+ cmd.run:
+    - name: echo "non Debian or Ubuntu platform those repo products that are unused"
 
 {% endif %}
 
