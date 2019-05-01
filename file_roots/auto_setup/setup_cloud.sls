@@ -221,7 +221,7 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: stable 2019.2.0
-{%- if build_ubuntu_1404 %}
+{%- if base_cfg.build_ubuntu_1404 %}
         svc-builder-u1404{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-01999a491d50246b4
@@ -273,7 +273,7 @@ create_dflt_map:
           - svc-builder-autotest-amzn1{{unique_postfix}}
         svc-builder-debian8{{unique_postfix}}:
           - svc-builder-autotest-d8m{{unique_postfix}}
-{%- if build_ubuntu_1404 %}
+{%- if base_cfg.build_ubuntu_1404 %}
         svc-builder-u1404{{unique_postfix}}:
           - svc-builder-autotest-u14m{{unique_postfix}}
 {%- endif %}
