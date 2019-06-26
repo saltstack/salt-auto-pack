@@ -348,11 +348,28 @@ for ndx in ${node_list}
 do
     nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
     salt "${nx}" saltutil.refresh_grains
+
+    ## work-around for some needed packages installed which are unavailable from the OS or Salt currently (first time - bootstrap)
+    if [[ -d bootstrap-pkgs ]]; then
+        if [[ $nx == svc-builder-autotest-c8m* ]]; then
+            if [[ (${PYTHON3_FLAG}) && (-f './bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm') ]]; then
+                salt $nx pkg.install  reinstall=True sources='[{"python3-gnupg": "salt://auto_setup/bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm"}]'
+            fi
+        elif [[ $nx == svc-builder-autotest-c7m* ]]; then
+            if [[ (${PYTHON3_FLAG}) && (-f './bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm') ]]; then
+                salt $nx pkg.install reinstall=True sources='[{"python36-gnupg": "salt://auto_setup/bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm"}]'
+            fi
+        fi
+    fi
+
     if [[ $nx == svc-builder-autotest-u1804m* ]]; then
+        salt ${CODE_MINION} state.sls auto_setup.ubuntu1804_wrkaround.sls
+        /srv/salt/auto_setup/ubuntu1804_wrkaround.sh "${nx}"
         salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
     else
         salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
     fi
+
 done
 
 _display "$SCRIPTNAME: autobuild finished"
