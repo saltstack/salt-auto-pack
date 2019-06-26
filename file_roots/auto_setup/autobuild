@@ -363,7 +363,7 @@ do
     fi
 
     if [[ $nx == svc-builder-autotest-u1804m* ]]; then
-        salt ${CODE_MINION} state.sls auto_setup.ubuntu1804_wrkaround.sls
+        salt ${CODE_MINION} state.sls auto_setup.ubuntu1804_wrkaround
         /srv/salt/auto_setup/ubuntu1804_wrkaround.sh "${nx}"
         salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
     else
