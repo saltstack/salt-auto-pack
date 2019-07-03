@@ -11,7 +11,15 @@
 {% set master_fqdn = grains.get('fqdn') %}
 {% set use_existing_cloud_map = false %}
 
+{% if base_cfg.build_year >= 2019 %}
+## disable for now since hand-build till 2019.2.1 release
 {% set rhel8_available = false %}
+{% set amzn2_available = false %}
+{% else %}
+{% set rhel8_available = false %}
+{% set amzn2_available = false %}
+{% endif %}
+
 
 {% if base_cfg.build_cloud_hold %}
 
@@ -128,7 +136,7 @@ create_dflt_profiles:
           script_args: stable 2019.2.0
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0a48da1bc7a80c2f2
+          image: ami-0f7157f751a882a04
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -167,6 +175,7 @@ create_dflt_profiles:
           sync_after_install: grains
           script_args: -x python3 git hashcode-here-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 {%- endif %}
+{%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0033222265d04439f
@@ -186,6 +195,7 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: stable 2019.2.0
+{%- endif %}
 {% else %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -251,8 +261,10 @@ create_dflt_map:
         svc-builder-cent8{{unique_postfix}}:
           - svc-builder-autotest-c8m{{unique_postfix}}
 {%- endif %}
+{%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
           - svc-builder-autotest-amzn2{{unique_postfix}}
+{%- endif %}
 {%- else %}
         svc-builder-amzn1{{unique_postfix}}:
           - svc-builder-autotest-amzn1{{unique_postfix}}

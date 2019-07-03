@@ -364,7 +364,9 @@ do
 
     if [[ $nx == svc-builder-autotest-u1804m* ]]; then
         salt ${CODE_MINION} state.sls auto_setup.ubuntu1804_wrkaround
-        /srv/salt/auto_setup/ubuntu1804_wrkaround.sh "${nx}"
+        /srv/salt/auto_setup/ubuntu1804_wrkaround.sh "${nx}" || {
+            _error "$SCRIPTNAME:state for auto_setup failed to execute ubuntu1804_wrkaround.sh for '${BRANCH_TAG}', retcode '${$?}'";
+        }
         salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
     else
         salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"

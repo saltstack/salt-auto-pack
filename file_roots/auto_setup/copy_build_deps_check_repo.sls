@@ -76,11 +76,16 @@
 
 {% set copy_repo_check_script_file = base_cfg.build_homedir ~ '/copy_deps_repo_check.sh' %}
 
-{% if platform == 'debian' or (platform == 'ubuntu' and os_version != '18.10') %}
+{% if platform == 'debian' or platform == 'ubuntu' %}
 ## only need to perform this check for Debian or Ubuntu families
-## don't release Ubuntu 18.10 so no need for it
 
 {% set repo_version = base_cfg.build_year ~ '.' ~ base_cfg.build_major_ver %}
+
+{% if build_py_ver == 'py3'and ((platform == 'redhat' and os_version == 8) or (platform == 'amazon' and os_version == 2) or (platform == 'debian' and os_version == 10)) %}
+{% set url_repo_latest_valid = true %}
+{% else %}
+{% set url_repo_latest_valid = false %}
+{% endif %}
 
 cleanup_deps_tmpdir:
   file.absent:
@@ -101,6 +106,7 @@ mkdir_deps_tmpdir:
         - mode
 
 
+{% if url_repo_latest_valid %}
 copy_repo_latest_deps:
   cmd.run:
     - name: |
@@ -110,14 +116,12 @@ copy_repo_latest_deps:
     - use_vt: True
     - require:
       - file: mkdir_deps_tmpdir
-
+{% endif %}
 
 remove_salt_tmp_dirs_packages:
   cmd.run:
     - name: |
         rm -fR {{base_cfg.build_salt_tmp_dir}}/conf {{base_cfg.build_salt_tmp_dir}}/db {{base_cfg.build_salt_tmp_dir}}/dists {{base_cfg.build_salt_tmp_dir}}/pool
-    - require:
-      - cmd: copy_repo_latest_deps
 
 
 ## now we have a copy of the latest on repo.saltstack.com

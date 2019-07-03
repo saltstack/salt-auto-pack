@@ -75,6 +75,12 @@
 {% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ web_compatible_dir %}
 
 
+{% if build_py_ver == 'py3' and ((platform == 'redhat' and os_version == 8) or (platform == 'amazon' and os_version == 2) or (platform == 'debian' and os_version == 10)) %}
+{% set url_repo_latest_valid = true %}
+{% else %}
+{% set url_repo_latest_valid = false %}
+{% endif %}
+
 mkdir_deps_packages:
   file.directory:
     - name: {{nb_srcdir}}
@@ -89,6 +95,7 @@ mkdir_deps_packages:
         - mode
 
 
+{% if url_repo_latest_valid %}
 copy_repo_latest_deps:
   cmd.run:
     - name: |
@@ -98,15 +105,13 @@ copy_repo_latest_deps:
     - use_vt: True
     - require:
       - file: mkdir_deps_packages
-
+{% endif %}
 
 copy_signed_deps:
   cmd.run:
     - name: |
         cp -n -v -u -p -R {{nfs_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
-    - require:
-      - file: mkdir_deps_packages
 
 
 copy_signed_deps_done:
