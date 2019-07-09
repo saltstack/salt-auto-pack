@@ -11,8 +11,13 @@
 {% set master_fqdn = grains.get('fqdn') %}
 {% set use_existing_cloud_map = false %}
 
-{% if base_cfg.build_year >= 2019 %}
-## disable for now since hand-build till 2019.2.1 release
+## disable for now since hand build till 2019.2.1 release
+{%- if build_py3 %}
+{% set rhel7_available = false %}
+{%- else %}
+{% set rhel7_available = true %}
+{%- endif %}
+{% if build_py3 and base_cfg.build_year >= 2019 %}
 {% set rhel8_available = false %}
 {% set amzn2_available = false %}
 {% else %}
@@ -77,6 +82,7 @@ create_dflt_profiles:
     - name: {{dflt_cloud_profiles}}
     - ignore_whitespace: False
     - text: |
+{%- if rhel7_available %}
         svc-builder-cent7{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0bf2c7f0df2c22ce0
@@ -96,6 +102,7 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: stable 2019.2.0
+{% endif %}
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f73b3e4b0b0a67ac
@@ -248,8 +255,10 @@ create_dflt_map:
     - name: {{dflt_cloud_map}}
     - ignore_whitespace: False
     - text: |
+{%- if rhel7_available %}
         svc-builder-cent7{{unique_postfix}}:
           - svc-builder-autotest-c7m{{unique_postfix}}
+{%- endif %}
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
         svc-builder-u1804{{unique_postfix}}:
