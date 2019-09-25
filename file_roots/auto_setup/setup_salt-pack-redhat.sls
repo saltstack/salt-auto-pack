@@ -13,11 +13,13 @@
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
 {% set changelog_text_py_ver = ' for Python 3' %}
-{% set platform_supported = ['rhel8', 'rhel7', 'fedora'] %}
+## {# {% set platform_supported = ['rhel8', 'rhel7', 'fedora'] %} #}
+{% set platform_supported = ['rhel8', 'rhel7'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
-{% set platform_supported = ['rhel7', 'rhel6', 'fedora'] %}
+## {# {% set platform_supported = ['rhel7', 'rhel6', 'fedora'] %} #}
+{% set platform_supported = ['rhel7', 'rhel6'] %}
 {% endif %}
 
 {% if base_cfg.build_specific_tag %}
@@ -149,9 +151,6 @@ adjust_branch_curr_salt_pack_{{platform_release}}_version_pkgbuild:
     - show_changes: True
 
 
-{% endfor %}    ## platform_supported
-
-
 {% if base_cfg.build_specific_tag %}
 
 adjust_branch_curr_salt_pack_{{platform_release}}_spec_version:
@@ -177,4 +176,5 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release:
 
 {% endif %}
 
+{% endfor %}    ## platform_supported
 
