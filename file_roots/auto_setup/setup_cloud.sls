@@ -18,9 +18,11 @@
 {% set rhel7_available = true %}
 {%- endif %}
 {% if build_py3 and base_cfg.build_year >= 2019 %}
+{% set debian10_available = false %}
 {% set rhel8_available = false %}
 {% set amzn2_available = false %}
 {% else %}
+{% set debian10_available = false %}
 {% set rhel8_available = false %}
 {% set amzn2_available = false %}
 {% endif %}
@@ -182,6 +184,27 @@ create_dflt_profiles:
           sync_after_install: grains
           script_args: -x python3 git hashcode-here-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 {%- endif %}
+{%- if debian10_available %}
+        svc-builder-debian10{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-00f16554cf4d1b65b
+          size: t2.medium
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: -x python3 git hashcode-here-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+{%- endif %}
 {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -266,6 +289,10 @@ create_dflt_map:
         svc-builder-u1604{{unique_postfix}}:
           - svc-builder-autotest-u1604m{{unique_postfix}}
 {%- if build_py3 %}
+{%- if debian10_available %}
+        svc-builder-debian10{{unique_postfix}}:
+          - svc-builder-autotest-d10m{{unique_postfix}}
+{%- endif %}
 {%- if rhel8_available %}
         svc-builder-cent8{{unique_postfix}}:
           - svc-builder-autotest-c8m{{unique_postfix}}
