@@ -174,6 +174,12 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release:
     - require:
       - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_version
 
+{% endif %}
+
+{% endfor %}    ## platform_supported
+
+
+{% if base_cfg.build_specific_tag %}
 
 update_versions_redhat_{{base_cfg.build_version}}:
  file.replace:
@@ -182,8 +188,4 @@ update_versions_redhat_{{base_cfg.build_version}}:
     - repl: '{{base_cfg.build_version}}'
     - show_changes: True
 
-
 {% endif %}
-
-{% endfor %}    ## platform_supported
-
