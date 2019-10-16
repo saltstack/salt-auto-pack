@@ -174,6 +174,15 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release:
     - require:
       - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_version
 
+
+update_versions_redhat_{{base_cfg.build_version}}:
+ file.replace:
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/redhat_pkg.sls
+    - pattern: '{{build_branch}}'
+    - repl: '{{base_cfg.build_version}}'
+    - show_changes: True
+
+
 {% endif %}
 
 {% endfor %}    ## platform_supported

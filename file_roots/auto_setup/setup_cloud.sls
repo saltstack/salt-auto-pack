@@ -18,9 +18,9 @@
 {% set rhel7_available = true %}
 {%- endif %}
 {% if build_py3 and base_cfg.build_year >= 2019 %}
-{% set debian10_available = false %}
+{% set debian10_available = true %}
 {% set rhel8_available = false %}
-{% set amzn2_available = false %}
+{% set amzn2_available = true %}
 {% else %}
 {% set debian10_available = false %}
 {% set rhel8_available = false %}
@@ -103,7 +103,11 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
+{%- if build_py3 %}
+          script_args: -x python3 stable 2019.2.0
+{%- else %}
           script_args: stable 2019.2.0
+{%- endif %}
 {% endif %}
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -203,7 +207,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 git hashcode-here-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          script_args: -x python3 stable 2019.2.0
 {%- endif %}
 {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
@@ -224,7 +228,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2019.2.0
+          script_args: -xpython 3 stable 2019.2.0
 {%- endif %}
 {% else %}
         svc-builder-amzn1{{unique_postfix}}:
