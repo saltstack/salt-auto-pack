@@ -75,11 +75,17 @@ adjust_salt_pack_master_pillar_top_match:
             'G@os_family:Redhat and G@osmajorrelease:6 and not G@os:Amazon':
               - auto_setup.redhat6
 
+            'G@os_family:Debian and G@osmajorrelease:10 and not G@osfullname:Raspbian':
+              - auto_setup.debian10
+
             'G@os_family:Debian and G@osmajorrelease:9 and not G@osfullname:Raspbian':
               - auto_setup.debian9
 
             'G@os_family:Debian and G@osmajorrelease:8 and not G@osfullname:Raspbian':
               - auto_setup.debian8
+
+            'G@osfullname:Raspbian and G@osmajorrelease:10 and G@os_family:Debian':
+              - auto_setup.raspbian10
 
             'G@osfullname:Raspbian and G@osmajorrelease:9 and G@os_family:Debian':
               - auto_setup.raspbian9
