@@ -228,7 +228,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python 3 stable 2019.2.2
+          script_args: -x python3 stable 2019.2.2
 {%- endif %}
 {% else %}
         svc-builder-amzn1{{unique_postfix}}:
