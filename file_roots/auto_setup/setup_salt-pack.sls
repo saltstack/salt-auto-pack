@@ -80,8 +80,10 @@ copy_working_branch_to_tagged_pillar_directory:
   file.copy:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_version}}/pkgbuild.sls
     - source: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{build_branch}}/pkgbuild.sls
+    - dir_mode: 755
+    - file_mode: 644
+    - user: {{base_cfg.build_runas}}
     - makedirs: True
-    - perserve: True
 
 
 ensure_versions_directory:
