@@ -13,11 +13,13 @@
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
 {% set changelog_text_py_ver = ' for Python 3' %}
-{% set redhat_supported = ['fedora'] %}
+## {# {% set platform_supported = ['rhel8', 'rhel7', 'fedora'] %} #}
+{% set platform_supported = ['rhel8', 'rhel7'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
-{% set redhat_supported = ['rhel6', 'fedora'] %}
+## {# {% set platform_supported = ['rhel7', 'rhel6', 'fedora'] %} #}
+{% set platform_supported = ['rhel7', 'rhel6'] %}
 {% endif %}
 
 {% if base_cfg.build_specific_tag %}
@@ -45,13 +47,18 @@
 
 {% set specific_user = pillar.get( 'specific_name_user', 'saltstack') %}
 
-build_cp_salt_targz_rhel7_sources:
+
+{% set rpmfiles = ['salt-api', 'salt-api.service', 'salt-master', 'salt-master.service', 'salt-minion', 'salt-minion.service', 'salt-syndic', 'salt-syndic.service', 'salt.bash' ] %}
+
+{% for platform_release in platform_supported %}
+
+build_cp_salt_targz_{{platform_release}}_sources:
   file.copy:
 {% if base_cfg.build_specific_tag %}
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/sources
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
 {% else %}
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/sources
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
@@ -60,13 +67,11 @@ build_cp_salt_targz_rhel7_sources:
     - user: {{base_cfg.build_runas}}
     - subdir: True
 
-{% set rpmfiles = ['salt-api', 'salt-api.service', 'salt-master', 'salt-master.service', 'salt-minion', 'salt-minion.service', 'salt-syndic', 'salt-syndic.service', 'salt.bash' ] %}
-
 {% for rpmfile in rpmfiles %}
 
-build_cp_salt_targz_rhel7_{{rpmfile.replace('.', '-')}}:
+build_cp_salt_targz_{{platform_release}}_{{rpmfile.replace('.', '-')}}:
   file.copy:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/sources
     - source: {{base_cfg.build_salt_dir}}/pkg/rpm/{{rpmfile}}
     - force: True
     - makedirs: True
@@ -78,9 +83,9 @@ build_cp_salt_targz_rhel7_{{rpmfile.replace('.', '-')}}:
 
 
 ## TODO does salt-proxy@.service need a symbolic link in pkg/rpm
-build_cp_salt_targz_rhel7_special_salt-proxy-service:
+build_cp_salt_targz_{{platform_release}}_special_salt-proxy-service:
   file.copy:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/sources
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/sources
     - source: {{base_cfg.build_salt_dir}}/pkg/salt-proxy@.service
     - force: True
     - makedirs: True
@@ -89,72 +94,47 @@ build_cp_salt_targz_rhel7_special_salt-proxy-service:
     - subdir: True
 
 
-build_cp_salt_targz_rhel7_salt-fish-completions:
+build_cp_salt_targz_{{platform_release}}_salt-fish-completions:
   cmd.run:
-    - name: cp -R {{base_cfg.build_salt_dir}}/pkg/fish-completions {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/sources/
+    - name: cp -R {{base_cfg.build_salt_dir}}/pkg/fish-completions {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/sources/
     - runas: {{base_cfg.build_runas}}
 
 
-adjust_branch_curr_salt_pack_rhel7_spec:
+adjust_branch_curr_salt_pack_{{platform_release}}_spec:
   file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
     - pattern: '{{spec_pattern_text_date}}'
     - repl: '{{spec_replacement_text_date}}'
     - show_changes: True
     - count: 1
 
 
-{% if base_cfg.build_specific_tag %}
-
-adjust_branch_curr_salt_pack_rhel7_spec_version:
-  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
-    - pattern: '{{default_branch_version_dotted}}'
-    - repl: '{{base_cfg.build_dsig}}'
-    - show_changes: True
-    - count: 1
-    - require:
-      - file: adjust_branch_curr_salt_pack_rhel7_spec
-
-
-adjust_branch_curr_salt_pack_rhel7_spec_release:
-  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
-    - pattern: 'Release: 0'
-    - repl: 'Release: {{release_level}}'
-    - show_changes: True
-    - count: 1
-    - require:
-      - file: adjust_branch_curr_salt_pack_rhel7_spec_version
-
-{% endif %}
-
-adjust_branch_curr_salt_pack_rhel7_spec_release_changelog:
+adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog:
   file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
     - mode: insert
     - after: "%changelog"
     - content: |
         * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
         - Update to feature release {{changelog_text}} {{changelog_text_py_ver}}
-        
+ 
         remove_this_line_after_insertion
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_rhel7_spec
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec
 
 
-adjust_branch_curr_salt_pack_rhel7_spec_release_changelog_cleanup:
+adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog_cleanup:
   file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec/salt.spec
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
     - mode: delete
     - match: 'remove_this_line_after_insertion'
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_rhel7_spec_release_changelog
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog
 
 
-adjust_branch_curr_salt_pack_rhel7_pkgbuild:
+adjust_branch_curr_salt_pack_{{platform_release}}_pkgbuild:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/pkgbuild.sls
     - pattern: '{{pattern_text_date}}'
@@ -163,7 +143,7 @@ adjust_branch_curr_salt_pack_rhel7_pkgbuild:
     - count: 1
 
 
-adjust_branch_curr_salt_pack_rhel7_version_pkgbuild:
+adjust_branch_curr_salt_pack_{{platform_release}}_version_pkgbuild:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_version}}/pkgbuild.sls
     - pattern: '{{pattern_text_date}}'
@@ -171,32 +151,37 @@ adjust_branch_curr_salt_pack_rhel7_version_pkgbuild:
     - show_changes: True
 
 
+{% if base_cfg.build_specific_tag %}
 
-{% for redhat_ver in redhat_supported %}
-
-update_{{redhat_ver}}_from_rhel7_init:
-  cmd.run:
-    - name: cp {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/init.sls {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{redhat_ver}}/init.sls
-    - runas: {{base_cfg.build_runas}}
-
-
-update_{{redhat_ver}}_from_rhel7_spec:
-  cmd.run:
-    - name: cp -R {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/spec {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{redhat_ver}}/
-    - runas: {{base_cfg.build_runas}}
+adjust_branch_curr_salt_pack_{{platform_release}}_spec_version:
+  file.replace:
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
+    - pattern: '{{default_branch_version_dotted}}'
+    - repl: '{{base_cfg.build_dsig}}'
+    - show_changes: True
+    - count: 1
+    - require:
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec
 
 
-update_{{redhat_ver}}_from_rhel7_sources:
-  cmd.run:
-    - name: cp -R {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/rhel7/sources {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{redhat_ver}}/
-    - runas: {{base_cfg.build_runas}}
+adjust_branch_curr_salt_pack_{{platform_release}}_spec_release:
+  file.replace:
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
+    - pattern: 'Release: 0'
+    - repl: 'Release: {{release_level}}'
+    - show_changes: True
+    - count: 1
+    - require:
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_version
 
-{% endfor %}
+{% endif %}
+
+{% endfor %}    ## platform_supported
 
 
 {% if base_cfg.build_specific_tag %}
 
-update_versions_rhel7_{{base_cfg.build_version}}:
+update_versions_redhat_{{base_cfg.build_version}}:
  file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/redhat_pkg.sls
     - pattern: '{{build_branch}}'
@@ -204,4 +189,3 @@ update_versions_rhel7_{{base_cfg.build_version}}:
     - show_changes: True
 
 {% endif %}
-

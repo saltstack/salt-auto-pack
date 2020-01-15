@@ -56,12 +56,18 @@ adjust_salt_pack_master_pillar_top_match:
     - name: /srv/pillar/top.sls
     - ignore_whitespace: False
     - text: |
-          ## 
+          ##
               - auto_setup.gpg_keys_do_not_commit
               - auto_setup.tag_build_dsig
 
-            'G@os_family:Redhat and G@os:Amazon':
+            'G@os_family:Redhat and G@os:Amazon and not G@osmajorrelease:2':
               - auto_setup.amazon
+
+            'G@os_family:Redhat and G@os:Amazon and G@osmajorrelease:2':
+              - auto_setup.amazon2
+
+            'G@os_family:Redhat and G@osmajorrelease:8 and not G@os:Amazon':
+              - auto_setup.redhat8
 
             'G@os_family:Redhat and G@osmajorrelease:7 and not G@os:Amazon':
               - auto_setup.redhat7
@@ -69,11 +75,17 @@ adjust_salt_pack_master_pillar_top_match:
             'G@os_family:Redhat and G@osmajorrelease:6 and not G@os:Amazon':
               - auto_setup.redhat6
 
+            'G@os_family:Debian and G@osmajorrelease:10 and not G@osfullname:Raspbian':
+              - auto_setup.debian10
+
             'G@os_family:Debian and G@osmajorrelease:9 and not G@osfullname:Raspbian':
               - auto_setup.debian9
 
             'G@os_family:Debian and G@osmajorrelease:8 and not G@osfullname:Raspbian':
               - auto_setup.debian8
+
+            'G@osfullname:Raspbian and G@osmajorrelease:10 and G@os_family:Debian':
+              - auto_setup.raspbian10
 
             'G@osfullname:Raspbian and G@osmajorrelease:9 and G@os_family:Debian':
               - auto_setup.raspbian9
@@ -87,8 +99,6 @@ adjust_salt_pack_master_pillar_top_match:
             'G@osfullname:Ubuntu and G@osmajorrelease:16':
               - auto_setup.ubuntu16
 
-            'G@osfullname:Ubuntu and G@osmajorrelease:14':
-              - auto_setup.ubuntu14
     - require:
       - file: adjust_salt_pack_master_pillar_top_keys
 

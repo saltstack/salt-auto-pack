@@ -1,5 +1,14 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
+## determine if build Python 3
+{% set build_py3 = pillar.get('build_py3', False) %}
+{% if build_py3 %}
+{% set build_py_ver = 'py3' %}
+{% else %}
+{% set build_py_ver = 'py2' %}
+{% endif %}
+
+
 # get minion target, local minion and nfs host from pillar data
 {% set minion_tgt = pillar.get('minion_tgt', 'UKNOWN-MINION') %}
 {% set build_local_id = pillar.get('build_local_minion', 'm7m') %}
@@ -28,8 +37,14 @@
 
 {% if my_tgt_os == 'amazon' %}
 {% set tgt_build_os_name = my_tgt_os %}
+{% if build_py3 %}
+## only build Amazon Linux 2 for Py3, Amazon Linux 1 for Py2
+{% set tgt_build_os_version = '2' %}
+{% set tgt_build_release = 'amzn' ~ tgt_build_os_version %}
+{% else %}
 {% set tgt_build_os_version = 'latest' %}
 {% set tgt_build_release = 'amzn' %}
+{% endif %}
 {% set tgt_build_arch = my_tgt_osarch %}
 {% else %}
 {% set tgt_build_os_name = my_tgt_os_family %}
@@ -61,15 +76,6 @@
 
 {% set tgt_build_arch = my_tgt_osarch %}
 
-{% endif %}
-
-
-## determine if build Python 3
-{% set build_py3 = pillar.get('build_py3', False) %}
-{% if build_py3 %}
-{% set build_py_ver = 'py3' %}
-{% else %}
-{% set build_py_ver = 'py2' %}
 {% endif %}
 
 
@@ -206,12 +212,20 @@ ensure_nfs_dir_exists_{{minion_platform}}:
         mode: 775
 
 
-mount_nfs_{{minion_platform}}:
-  salt.function:
-    - name: cmd.run
+umount_any_previous_mount_nfs_{{minion_platform}}:
+  salt.state:
     - tgt: {{minion_tgt}}
-    - arg:
-      - mount {{nfs_opts}} {{nfs_host}}:{{base_cfg.minion_nfsabsdir}} {{base_cfg.minion_mount_nfsrootdir}}
+    - queue: True
+    - sls:
+      - auto_setup.setup_local_umount
+
+
+mount_nfs_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.setup_local_mount
     - require:
       - salt: ensure_nfs_dir_exists_{{minion_platform}}
 
@@ -276,6 +290,16 @@ build_highstate_{{base_cfg.build_version}}_{{minion_platform}}:
         build_arch: {{tgt_build_arch}}
 
 
+copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.copy_build_deps_check_repo
+    - require:
+      - salt: build_highstate_{{base_cfg.build_version}}_{{minion_platform}}
+
+
 sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
@@ -289,15 +313,17 @@ sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
         gpg_passphrase: {{pphrase}}
 {%- endif %}
     - require:
-      - salt: build_highstate_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}
 
 
-remove_current_{{base_cfg.build_version}}_{{minion_platform}}:
+remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}:
   salt.function:
     - name: file.remove
     - tgt: {{minion_tgt}}
     - arg:
-      - {{nfs_server_base_dir}}/{{base_cfg.build_version_dotted}}
+      - {{nfs_server_branch_symlink}}
+    - onlyif:
+        - ls {{nfs_server_branch_symlink}}
     - require:
       - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
 
@@ -309,6 +335,8 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
     - arg:
       - {{nfs_server_archive_dir}}
       - {{nfs_server_branch_symlink}}
+    - require:
+      - salt: remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}
 
 
 copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
@@ -323,13 +351,24 @@ copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
 
 
 cleanup_mount_nfs_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.setup_local_umount
+    - require:
+      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+
+
+## allow for umount to complete (90sec - give 120 for safety)
+cleanup_tgt_settle_{{minion_platform}}:
   salt.function:
     - name: cmd.run
     - tgt: {{minion_tgt}}
     - arg:
-      - umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
+      - sleep 120
     - require:
-      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: cleanup_mount_nfs_{{minion_platform}}
 
 
 publish_event_finished_build_{{minion_platform}}:
@@ -339,6 +378,5 @@ publish_event_finished_build_{{minion_platform}}:
     - sls:
       - auto_setup.event_build_finished
     - require:
-      - salt: cleanup_mount_nfs_{{minion_platform}}
-
+      - salt: cleanup_tgt_settle_{{minion_platform}}
 

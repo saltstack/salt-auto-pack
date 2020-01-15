@@ -15,5 +15,7 @@ ensure_dir_{{build_local_id}}:
 
 mount_{{build_local_id}}:
   cmd.run:
-    - name: mount {{nfs_opts}} {{nfs_host}}:{{base_cfg.minion_nfsabsdir}} {{base_cfg.minion_mount_nfsrootdir}}
+    - name: mount -v {{nfs_opts}} {{nfs_host}}:{{base_cfg.minion_nfsabsdir}} {{base_cfg.minion_mount_nfsrootdir}}
+    - unless:
+      - mount | grep '{{nfs_host}}'
 

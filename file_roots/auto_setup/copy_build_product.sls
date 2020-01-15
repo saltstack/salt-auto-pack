@@ -29,9 +29,15 @@
 {% set platform_pkg = 'yum' %}
 
 {% if grains.get('os') == 'Amazon' -%}
-{% set os_version = 'latest' %}
 {% set platform = grains.get('os')|lower -%}
+{% if build_py3 %}
+## only build Amazon Linux 2 for Py3, Amazon Linux 1 for Py2
+{% set os_version = '2' %}
+{% set tgt_build_release = 'amzn' ~ os_version %}
+{% else %}
+{% set os_version = 'latest' %}
 {% set tgt_build_release = 'amzn' %}
+{% endif %}
 {% else %}
 {% set os_version = grains.get('osmajorrelease') %}
 {% set platform = grains.get('os_family')|lower -%}

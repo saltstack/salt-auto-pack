@@ -30,8 +30,14 @@
 
 {% if grains.get('os') == 'Amazon' -%}
 {% set platform = grains.get('os')|lower -%}
-{% set tgt_build_release = 'amzn' %}
+{% if build_py3 %}
+## only build Amazon Linux 2 for Py3, Amazon Linux 1 for Py2
+{% set os_version = '2' %}
+{% set tgt_build_release = 'amzn' ~ os_version %}
+{% else %}
 {% set os_version = 'latest' %}
+{% set tgt_build_release = 'amzn' %}
+{% endif %}
 {% else %}
 {% set platform = grains.get('os_family')|lower -%}
 {% set tgt_build_release = 'rhel' ~ grains.get('osmajorrelease') %}
@@ -63,7 +69,17 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+{% set repo_url = 'http://repo.saltstack.com' %}
+{% set web_compatible_dir = platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
+
+{% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ web_compatible_dir %}
+
+
+{% if build_py_ver == 'py3' and ((platform == 'redhat' and os_version == 8) or (platform == 'amazon' and os_version == 2) or (platform == 'debian' and os_version == 10)) %}
+{% set url_repo_latest_valid = true %}
+{% else %}
+{% set url_repo_latest_valid = false %}
+{% endif %}
 
 mkdir_deps_packages:
   file.directory:
@@ -79,13 +95,23 @@ mkdir_deps_packages:
         - mode
 
 
+{% if url_repo_latest_valid %}
+copy_repo_latest_deps:
+  cmd.run:
+    - name: |
+        wget --recursive --no-parent --no-check-certificate  --convert-links --reject index* --no-host-directories --cut-dirs=5  {{repo_url}}/{{web_compatible_dir}}/latest/
+    - cwd: {{nb_srcdir}}/
+    - runas: {{base_cfg.build_runas}}
+    - use_vt: True
+    - require:
+      - file: mkdir_deps_packages
+{% endif %}
+
 copy_signed_deps:
   cmd.run:
     - name: |
-        cp -p -R {{nfs_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
+        cp -n -v -u -p -R {{nfs_server_base_dir}}/{{build_branch}}/* {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
-    - require:
-      - file: mkdir_deps_packages
 
 
 copy_signed_deps_done:

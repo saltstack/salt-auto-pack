@@ -8,8 +8,8 @@
 {% set build_py3 = pillar.get('build_py3', False) %}
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
-{% set changelog_text_py_ver = ' for Python 2 and Python 3' %}
-{% set debian_supported = ['debian9'] %}
+{% set changelog_text_py_ver = ' for Python 3' %}
+{% set debian_supported = ['debian10', 'debian9'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}

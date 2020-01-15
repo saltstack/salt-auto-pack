@@ -48,7 +48,7 @@ _usage() {
     echo "             [-y|--nfs_host <hostname of NFS server>]"
     echo "             [-z|--nfs_absdir <absolute NFS directory on NFS server for build product>]"
     echo ""
-    echo "  -b, --branch        git HEAD of branch for intended or specified major version, default 2017.7"
+    echo "  -b, --branch        git HEAD of branch for intended or specified major version, default 2019.2"
     echo "                      if specific_name user is not used then, salt-pack branch version is used \(for example: nightly build\)"
     echo "  -c, --clean         clean build, do not not use any dependencies already built for the branch, default not clean"
 ##    echo "  -d, --debug     debug output enabled"
@@ -63,10 +63,10 @@ _usage() {
     echo "  -p, --pack_branch   name of salt-pack branch to use, default develop"
     echo "  -r, --nfs_opts      NFS options used to mount NFS server's directories"
     echo "  -s, --specific_name specifically named version to build, default dated autobuild, for example: rc1"
-    echo "  -t, --tag           build tagged release, for example: v2017.7.1 for specific release version,"
+    echo "  -t, --tag           build tagged release, for example: v2019.2.0 for specific release version,"
     echo "                      if PyPI doesn't contain tag, then utilizes git tag"
     echo "  -u, --user          username for git's salt and salt-pack,  and results NFS server directory, default saltstack"
-    echo "                      Note: user's salt-pack changes should be against root for branch, for example: 2017.7"
+    echo "                      Note: user's salt-pack changes should be against root for branch, for example: 2019.2"
     echo "  -v, --verbose       verbose output"
     echo "  -w, --mount_nfsdir  mount root NFS directory for minions as repository for build products"
     echo "  -y, --nfs_host      using user's NFS server hostname for repository for build products"
@@ -75,8 +75,8 @@ _usage() {
     echo "  creates specified packages for major platforms, signed with Salt testing keys"
     echo "  dated by current start time of execution in YYYYMMDDhhmmnnnn format"
     echo "  current platforms:"
-    echo "      Redhat 7"
-    echo "      Debian 9 and 8"
+    echo "      Redhat 8 and 7"
+    echo "      Debian 10, 9 and 8"
     echo "      Raspbian 9 and 8"
     echo "      Ubuntu 18.04, 16.04 and 14.04"
     echo ""
@@ -93,7 +93,7 @@ USAGE_HELP=false
 LOG_MODE='debug'
 ATTEMPT_PYPI=0
 RELEASE_TAG=''
-RELEASE_BRANCH='2017.7'
+RELEASE_BRANCH='2019.2'
 RELEASE_CODE_NAMED_BRANCH=''
 RELEASE_SPECIFIC_NAME_BRANCH=''
 RELEASE_DSIG_BRANCH=''
@@ -110,7 +110,8 @@ PYTHON3_FLAG=False
 ## DEFAULT_MOUNT_NFSDIR='/mnt_build_res'
 
 DEFAULT_NFS_OPTS='-t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport'
-DEFAULT_NFS_HOST='fs-6e0b6fc6.efs.us-west-2.amazonaws.com'
+## dev DEFAULT_NFS_HOST='fs-6e0b6fc6.efs.us-west-2.amazonaws.com'
+DEFAULT_NFS_HOST='fs-0a5660a2.efs.us-west-2.amazonaws.com'
 DEFAULT_NFS_ABSDIR='/'
 DEFAULT_MOUNT_NFSDIR='/mnt_build_res'
 
@@ -137,7 +138,7 @@ AWS_ACCESS_PRIV_KEY_NAME='aws-file-key-name-to-be-determined'
 ##    -d | --debug )  DEBUG=True; shift ;;
 ##    -l | --log )  LOG_MODE="$2"; shift 2 ;;
 
-## not validating input branch tag, format v2017.7.1 or 2017.7
+## not validating input branch tag, format v2019.2.0 or 2019.2
 BRANCH_TAG=''
 
 while true; do
@@ -338,13 +339,45 @@ _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from
 
 # get list from salt-cloud and remove [ and ] on first and last line
 ## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq '.[] | .[] | keys' | tail -n +2 | head -n -1)   ## for opennebula
-node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
+
+## running into issues with Ubuntu 18.04 and being called async when starting async, going to try leaving it to last and call directly
+## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
+node_list=$(salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort)       ## for ec2
 
 for ndx in ${node_list}
 do
     nx=$(echo "${ndx}" | sed  's/,//' | sed 's/"//g')
     salt "${nx}" saltutil.refresh_grains
-    salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+
+    ## work-around for some needed packages installed which are unavailable from the OS or Salt currently (first time - bootstrap)
+    if [[ -d bootstrap-pkgs ]]; then
+        if [[ $nx == svc-builder-autotest-c8m* ]]; then
+            if [[ (${PYTHON3_FLAG}) && (-f './bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm') ]]; then
+                salt $nx pkg.install  reinstall=True sources='[{"python3-gnupg": "salt://auto_setup/bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm"}]'
+            fi
+        elif [[ $nx == svc-builder-autotest-c7m* ]]; then
+            if [[ (${PYTHON3_FLAG}) && (-f './bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm') ]]; then
+                salt $nx pkg.install reinstall=True sources='[{"python36-gnupg": "salt://auto_setup/bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm"}]'
+            fi
+        fi
+    fi
+
+    if [[ $nx == svc-builder-autotest-u1804m* ]]; then
+        salt ${CODE_MINION} state.sls auto_setup.ubuntu1804_wrkaround
+        /srv/salt/auto_setup/ubuntu1804_wrkaround.sh "${nx}" || {
+            _error "$SCRIPTNAME:state for auto_setup failed to execute ubuntu1804_wrkaround.sh for '${BRANCH_TAG}', retcode '${$?}'";
+        }
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+    elif [[ $nx == svc-builder-autotest-d* ]]; then
+        salt ${CODE_MINION} state.sls auto_setup.debian_wrkaround
+        /srv/salt/auto_setup/debian_wrkaround.sh "${nx}" || {
+            _error "$SCRIPTNAME:state for auto_setup failed to execute debian_wrkaround.sh for '${nx}' on '${BRANCH_TAG}', retcode '${$?}'";
+        }
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+    else
+        salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+    fi
+
 done
 
 _display "$SCRIPTNAME: autobuild finished"

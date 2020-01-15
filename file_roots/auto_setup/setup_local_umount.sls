@@ -7,5 +7,7 @@
 
 umount_{{build_local_id}}:
   cmd.run:
-    - name: umount {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
+    - name: umount -v -f {{nfs_host}}:{{base_cfg.minion_nfsabsdir}}
+    - onlyif:
+      - mount | grep '{{nfs_host}}'
 
