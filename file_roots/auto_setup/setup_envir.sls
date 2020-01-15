@@ -70,6 +70,8 @@ reinitialize_reactor_file:
           wheel.key.delete:
             - args:
                 match: {{data['id']}}
+            - require:
+              - runner: runner.cloud.destroy
         {% endif %}
         {% endif %}
         {% endraw %}

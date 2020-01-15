@@ -11,6 +11,22 @@
 {% set master_fqdn = grains.get('fqdn') %}
 {% set use_existing_cloud_map = false %}
 
+## disable for now since hand build till 2019.2.1 release
+{%- if build_py3 %}
+{% set rhel7_available = true %}
+{%- else %}
+{% set rhel7_available = true %}
+{%- endif %}
+{% if build_py3 and base_cfg.build_year >= 2019 %}
+{% set debian10_available = true %}
+{% set rhel8_available = true %}
+{% set amzn2_available = true %}
+{% else %}
+{% set debian10_available = false %}
+{% set rhel8_available = false %}
+{% set amzn2_available = false %}
+{% endif %}
+
 
 {% if base_cfg.build_cloud_hold %}
 
@@ -68,6 +84,7 @@ create_dflt_profiles:
     - name: {{dflt_cloud_profiles}}
     - ignore_whitespace: False
     - text: |
+{%- if rhel7_available %}
         svc-builder-cent7{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0bf2c7f0df2c22ce0
@@ -86,26 +103,12 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2018.3.3
-        svc-builder-amzn2{{unique_postfix}}:
-          provider: production-ec2-us-west-2-private-ips
-          image: ami-0de21f348ed67b2f6
-          size: t2.medium
-          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
-          ssh_interface: private_ips
-          network_interfaces:
-            - DeviceIndex: 0
-              PrivateIpAddresses:
-                - Primary: True
-              AssociatePublicIpAddress: True
-              SubnetId: {{base_cfg.subnet_id}}
-              SecurityGroupId:
-                - {{base_cfg.sec_group_id}}
-          del_root_vol_on_destroy: True
-          del_all_vol_on_destroy: True
-          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
-          sync_after_install: grains
-          script_args: stable 2018.3.3
+{%- if build_py3 %}
+          script_args: -x python3 stable 2019.2.2
+{%- else %}
+          script_args: stable 2019.2.2
+{%- endif %}
+{% endif %}
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f73b3e4b0b0a67ac
@@ -124,10 +127,10 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.2
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0772a3ab3adde716a
+          image: ami-0d5f916f52836397d
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -143,10 +146,10 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.2
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0a48da1bc7a80c2f2
+          image: ami-0f7157f751a882a04
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -162,8 +165,72 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args:  -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
-{%- if build_py3 == False %}
+          script_args: stable 2019.2.2
+{%- if build_py3 %}
+{%- if rhel8_available %}
+        svc-builder-cent8{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-02b343d2e3ea1980c
+          size: t2.medium
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: -x python3 stable 2019.2.2
+{%- endif %}
+{%- if debian10_available %}
+        svc-builder-debian10{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-00f16554cf4d1b65b
+          size: t2.medium
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: -x python3 stable 2019.2.2
+{%- endif %}
+{%- if amzn2_available %}
+        svc-builder-amzn2{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-0033222265d04439f
+          size: t2.medium
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: -x python3 stable 2019.2.2
+{%- endif %}
+{% else %}
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06878170589c3321a
@@ -185,7 +252,7 @@ create_dflt_profiles:
           script_args: stable 2016.11
         svc-builder-debian8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-0f91bd607d6192cd9
+          image: ami-0853e07df32d2cd50
           size: t2.medium
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -201,26 +268,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
-        svc-builder-u1404{{unique_postfix}}:
-          provider: production-ec2-us-west-2-private-ips
-          image: ami-01999a491d50246b4
-          size: t2.medium
-          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
-          ssh_interface: private_ips
-          network_interfaces:
-            - DeviceIndex: 0
-              PrivateIpAddresses:
-                - Primary: True
-              AssociatePublicIpAddress: True
-              SubnetId: {{base_cfg.subnet_id}}
-              SecurityGroupId:
-                - {{base_cfg.sec_group_id}}
-          del_root_vol_on_destroy: True
-          del_all_vol_on_destroy: True
-          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
-          sync_after_install: grains
-          script_args:  -s 15 git f817894e5f53dcba745977cc03ef0a73493b035a
+          script_args: stable 2019.2.2
 {%- endif %}
 
 
@@ -234,32 +282,47 @@ create_dflt_map:
     - name: {{dflt_cloud_map}}
     - ignore_whitespace: False
     - text: |
+{%- if rhel7_available %}
         svc-builder-cent7{{unique_postfix}}:
           - svc-builder-autotest-c7m{{unique_postfix}}
+{%- endif %}
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
         svc-builder-u1804{{unique_postfix}}:
-          - svc-builder-autotest-u18m{{unique_postfix}}
+          - svc-builder-autotest-u1804m{{unique_postfix}}
         svc-builder-u1604{{unique_postfix}}:
-          - svc-builder-autotest-u16m{{unique_postfix}}
-{%- if build_py3 == False %}
+          - svc-builder-autotest-u1604m{{unique_postfix}}
+{%- if build_py3 %}
+{%- if debian10_available %}
+        svc-builder-debian10{{unique_postfix}}:
+          - svc-builder-autotest-d10m{{unique_postfix}}
+{%- endif %}
+{%- if rhel8_available %}
+        svc-builder-cent8{{unique_postfix}}:
+          - svc-builder-autotest-c8m{{unique_postfix}}
+{%- endif %}
+{%- if amzn2_available %}
+        svc-builder-amzn2{{unique_postfix}}:
+          - svc-builder-autotest-amzn2{{unique_postfix}}
+{%- endif %}
+{%- else %}
         svc-builder-amzn1{{unique_postfix}}:
           - svc-builder-autotest-amzn1{{unique_postfix}}
         svc-builder-debian8{{unique_postfix}}:
           - svc-builder-autotest-d8m{{unique_postfix}}
-        svc-builder-u1404{{unique_postfix}}:
-          - svc-builder-autotest-u14m{{unique_postfix}}
+{%- endif %}
 {%- endif %}
 
-{%- endif %}
 ## endif for if use_existing_cloud_map == false
 
 ## waiting for bootstrap to support Amazon Linux 2
 ##         svc-builder-amzn2{{unique_postfix}}:
 ##           - svc-builder-autotest-amzn2{{unique_postfix}}
 
-
 ## startup build minions specified in cloud map
+update_cloud_bootstrap_latest:
+  cmd.run:
+    - name: "salt-cloud -u"
 
 
 launch_cloud_map:

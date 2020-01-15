@@ -25,7 +25,7 @@
 {% else %}
 
 {% set have_tag_from_pypi_dict = salt.cmd.run("salt " ~ build_local_minion ~ " file.file_exists " ~ base_cfg.build_salt_pypi_dir ~ "/salt-" ~ base_cfg.build_version_full_dotted ~ ".tar.gz -l quiet --out=json")  | load_json %}
-{% if have_tag_from_pypi_dict[build_local_minion] == True %} 
+{% if have_tag_from_pypi_dict[build_local_minion] == True %}
 {% set have_tag_from_pypi = true %}
 {% else %}
 {% set have_tag_from_pypi = false %}
@@ -94,6 +94,31 @@ build_write_version_override_rights:
 {% endif %}
 
 
+# ensure cloud files and directory permissions correct
+{% set cloud_dirs = 'cloud.conf.d', 'cloud.deploy.d', 'cloud.maps.d', 'cloud.profiles.d', 'cloud.providers.d' %}
+{% for cloud_dir in cloud_dirs %}
+
+ensure_permissions_{{cloud_dir.replace('.', '_')}}:
+  cmd.run:
+    - name: chmod 0700 {{base_cfg.build_salt_dir}}/conf/{{cloud_dir}}
+    - onlyif:
+        - ls {{base_cfg.build_salt_dir}}/conf/{{cloud_dir}}
+
+{% endfor %}
+
+
+{% set cloud_files = 'cloud', 'cloud.profiles', 'cloud.providers' %}
+{% for cloud_file in cloud_files %}
+
+ensure_permissions_{{cloud_file.replace('.', '_')}}:
+  cmd.run:
+    - name: chmod 0600 {{base_cfg.build_salt_dir}}/conf/{{cloud_file}}
+    - onlyif:
+        - ls {{base_cfg.build_salt_dir}}/conf/{{cloud_file}}
+
+{% endfor %}
+
+
 {% if have_tag_from_pypi == false %}
 
 build_salt_sdist:
@@ -128,4 +153,5 @@ cleanup_pypi_dist:
     - name: {{base_cfg.build_salt_pypi_dir}}
 
 {% endif %}
+
 

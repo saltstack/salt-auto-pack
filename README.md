@@ -7,6 +7,7 @@ Auto-pack relies on SaltStack’s Master-Minion functionality to build the desir
 Auto-pack is designed to overlay salt-pack and it's main functionality resides in pillar_roots/auto_setup and file_roots/auto_setup.  Auto-pack leverages orchestration to preform the setup, build and create repository functions which are typically done seperately with salt-pack.
 
 For example: common usage of salt-pack
+
     salt minion_id state.sls setup.debian.debian9 pillar='{ "build_dest" : "/srv/debian/2017.7/pkgs" , "build_release" : "debian9" , "build_arch" : "armhf" }'
 
     salt minion_id state.highstate pillar='{ "build_dest" : "/srv/debian/2017.7/pkgs" , "build_release" : "debian9", "build_version" : "2017_7", "build_arch" : "armhf" }'
@@ -44,12 +45,14 @@ Currently supported Operating Systems
 
 Currently auto-pack is driven from the shell script autobuild located in file_roots/auto_setup which takes a number of short or long switches to control it's functionality as follows:
 
+```
 usage: ${0}  [-h|--help] [-b|--branch <branch to build>] [-c|--clean] [-m|--minion <minion to use>]"
              [-n|--named_branch <code named branch to build>] [-r|--nfs_opts <NFS server's directories>]"
              [-p|--pack_branch <git named branch>] [-s|--specific_name <specific named version to produce>]"
              [-u|--user <username for git salt and salt-pack>] [-v|--verbose]"
              [-w|--mount_nfsdir <mount root NFS directory for minions>] [-y|--nfs_host <hostname of NFS server>]"
              [-z|--nfs_absdir <absolute NFS directory on NFS server for build product>]"
+```
 
 
 autobuild can be typically used to built a dated version of the current head of a Salt branch in Git as follows:

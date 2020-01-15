@@ -51,7 +51,7 @@
 {% set build_version_full_uscore = build_version_full_dotted|replace(".", "_") %}   ## 2017_7_1
 {% set build_version_list = build_version_full_dotted.split(".") %}                 ## generate list [ 2017, 7, 1 ]
 {% set build_year = build_version_list[0] %}                                        ## 2017.7.1 -> 2017
-{% set build_major_ver = build_version_list[1] %}                                   ## 2017.7.1 -> 11
+{% set build_major_ver = build_version_list[1] %}                                   ## 2017.7.1 -> 7
 {% set build_minor_ver = build_version_list[2] %}                                   ## 2017.7.1 -> 1
 
 ## produce dotted build version regardless of branch_tag
@@ -76,6 +76,7 @@
 {% set build_salt_dir = build_homedir ~ '/salt_dir' %}
 {% set build_salt_pypi_dir = build_homedir ~ '/pypi_dir' %}
 {% set build_salt_pack_dir = build_homedir ~ '/salt_pack_dir' %}
+{% set build_salt_tmp_dir = build_homedir ~ '/salt_tmp_dir' %}
 {% set build_salt_reactor_file = '/srv/reactor/auto_pack_event.sls' %}
 {% set build_salt_reactor_conf = '/etc/salt/master.d/reactor.conf' %}
 
