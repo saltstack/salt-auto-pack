@@ -17,14 +17,12 @@
 {% set platform_supported = ['amzn'] %}
 {% endif %}
 
-## Amazon Latest, copies from Redhat 7 which should be run first
-
-{% set build_branch = base_cfg.build_year ~ '_' ~ base_cfg.build_major_ver %}
-{% set default_branch_version_dotted = base_cfg.build_year ~ '.' ~ base_cfg.build_major_ver ~'.0' %}
+{% set build_branch = base_cfg.build_branch %}
+{% set default_branch_version_number = base_cfg.build_number %}
+{% set default_branch_prefix = 'master' %}
 {% set rpm_date = pillar.get('build_rpm_date') %}
 
 {% if base_cfg.build_specific_tag %}
-{% set default_branch_version = build_branch ~'.0' %}
 
 {% if base_cfg.release_level is defined %}
 {% set release_level = pillar.get(base_cfg.release_level, '1') %}
@@ -32,14 +30,21 @@
 {% set release_level = '1' %}
 {% endif %}
 
-{% set pattern_text_date = default_branch_version_dotted ~ 'tobereplaced_date-0' %}
-{% set replacement_text_date = base_cfg.build_dsig ~ '-' ~ release_level %}
-{% set changelog_text = base_cfg.build_dsig ~ '-' ~ release_level %}
+{% set spec_pattern_text_date = 'tobereplaced_date' %}
+{% set spec_replacement_text_date = '%{nil}' %}
+{% set pattern_text_date = default_branch_prefix ~ '-' ~ 'tobereplaced_date-0' %}
+{% set replacement_text_date = default_branch_version_number  ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+{% set changelog_text =  default_branch_version_number ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+
 {% else %}
+
 {% set release_level = '0' %}
-{% set pattern_text_date = 'tobereplaced_date' %}
-{% set replacement_text_date = base_cfg.build_dsig %}
-{% set changelog_text = default_branch_version_dotted ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+{% set spec_pattern_text_date = 'tobereplaced_date' %}
+{% set spec_replacement_text_date = base_cfg.build_dsig %}
+{% set pattern_text_date = default_branch_prefix ~ '-' ~ spec_pattern_text_date ~ '-' ~ release_level %}
+{% set replacement_text_date = default_branch_version_number ~ spec_replacement_text_date ~ '-' ~ release_level %}
+{% set changelog_text = default_branch_version_number ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+
 {% endif %}
 
 
@@ -57,7 +62,7 @@ build_cp_salt_targz_{{platform_ver}}_sources:
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
 {% else %}
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/sources
-    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}.tar.gz
+    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version_number}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
     - makedirs: True
@@ -100,13 +105,11 @@ build_cp_salt_targz_{{platform_ver}}_salt-fish-completions:
     - runas: {{base_cfg.build_runas}}
 
 
-{% if base_cfg.build_specific_tag %}
-
-adjust_branch_curr_salt_pack_{{platform_ver}}_spec:
+adjust_branch_curr_salt_pack_{{platform_release}}_spec:
   file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - pattern: 'tobereplaced_date'
-    - repl: '%{nil}'
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
+    - pattern: '{{spec_pattern_text_date}}'
+    - repl: '{{spec_replacement_text_date}}'
     - show_changes: True
     - count: 1
 
@@ -114,40 +117,29 @@ adjust_branch_curr_salt_pack_{{platform_ver}}_spec:
 adjust_branch_curr_salt_pack_{{platform_ver}}_spec_version:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - pattern: 'Version: {{default_branch_version_dotted}}'
-    - repl: 'Version: {{base_cfg.build_dsig}}'
+    - pattern: 'Version: master'
+    - repl: 'Version: {{default_branch_version_number}}'
     - show_changes: True
     - count: 1
     - require:
       - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec
 
 
-adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release:
-  file.replace:
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog:
+  file.line:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - pattern: 'Release: 0'
-    - repl: 'Release: {{release_level}}'
+    - mode: insert
+    - after: "%changelog"
+    - content: |
+        * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
+        - Update to feature release {{changelog_text}}
+        
+        remove_this_line_after_insertion
     - show_changes: True
-    - count: 1
     - require:
       - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_version
 
 
-adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog:
-  file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - mode: insert
-    - after: "%changelog"
-    - content: |
-        * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
-        - Update to feature release {{changelog_text}}
-        
-        remove_this_line_after_insertion
-    - show_changes: True
-    - require:
-      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release
-
-
 adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog_cleanup:
   file.line:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
@@ -156,44 +148,6 @@ adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog_cleanup:
     - show_changes: True
     - require:
       - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog
-
-{% else %}
-
-adjust_branch_curr_salt_pack_{{platform_ver}}_spec:
-  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - pattern: '{{pattern_text_date}}'
-    - repl: '{{replacement_text_date}}'
-    - show_changes: True
-    - count: 1
-
-
-adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog:
-  file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - mode: insert
-    - after: "%changelog"
-    - content: |
-        * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
-        - Update to feature release {{changelog_text}}
-        
-        remove_this_line_after_insertion
-    - show_changes: True
-    - require:
-      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec
-
-
-adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog_cleanup:
-  file.line:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
-    - mode: delete
-    - match: 'remove_this_line_after_insertion'
-    - show_changes: True
-    - require:
-      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release_changelog
-
-
-{% endif %}
 
 
 adjust_branch_curr_salt_pack_{{platform_ver}}_pkgbuild:
@@ -212,7 +166,22 @@ adjust_branch_curr_salt_pack_{{platform_ver}}_version_pkgbuild:
     - repl: '{{replacement_text_date}}'
     - show_changes: True
 
-{% endfor %}
+
+{% if base_cfg.build_specific_tag %}
+
+adjust_branch_curr_salt_pack_{{platform_ver}}_spec_release:
+  file.replace:
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_ver}}/spec/salt.spec
+    - pattern: 'Release: 0'
+    - repl: 'Release: {{release_level}}'
+    - show_changes: True
+    - count: 1
+    - require:
+      - file: adjust_branch_curr_salt_pack_{{platform_ver}}_version_pkgbuild
+
+{% endif %}
+
+{% endfor %}    ## platform supported
 
 
 {% if base_cfg.build_specific_tag %}

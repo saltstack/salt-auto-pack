@@ -4,8 +4,9 @@
 
 ## Redhat 7 & 6
 
-{% set build_branch = base_cfg.build_year ~ '_' ~ base_cfg.build_major_ver %}
-{% set default_branch_version_dotted = base_cfg.build_year ~ '.' ~ base_cfg.build_major_ver ~'.0' %}
+{% set build_branch = base_cfg.build_branch %}
+{% set default_branch_version_number = base_cfg.build_number %}
+{% set default_branch_prefix = 'master' %}
 {% set rpm_date = pillar.get('build_rpm_date') %}
 
 # no support for Redhat 6 in Python3
@@ -33,16 +34,19 @@
 
 {% set spec_pattern_text_date = 'tobereplaced_date' %}
 {% set spec_replacement_text_date = '%{nil}' %}
-{% set pattern_text_date = default_branch_version_dotted ~ 'tobereplaced_date-0' %}
-{% set replacement_text_date = base_cfg.build_dsig ~ '-' ~ release_level %}
-{% set changelog_text = base_cfg.build_dsig ~ '-' ~ release_level %}
+{% set pattern_text_date = default_branch_prefix ~ '-' ~ 'tobereplaced_date-0' %}
+{% set replacement_text_date = default_branch_version_number  ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+{% set changelog_text =  default_branch_version_number ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+
 {% else %}
+
 {% set release_level = '0' %}
 {% set spec_pattern_text_date = 'tobereplaced_date' %}
 {% set spec_replacement_text_date = base_cfg.build_dsig %}
-{% set pattern_text_date = spec_pattern_text_date ~ '-' ~ release_level %}
-{% set replacement_text_date = spec_replacement_text_date ~ '-' ~ release_level %}
-{% set changelog_text = default_branch_version_dotted ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+{% set pattern_text_date = default_branch_prefix ~ '-' ~ spec_pattern_text_date ~ '-' ~ release_level %}
+{% set replacement_text_date = default_branch_version_number ~ spec_replacement_text_date ~ '-' ~ release_level %}
+{% set changelog_text = default_branch_version_number ~ base_cfg.build_dsig ~ '-' ~ release_level %}
+
 {% endif %}
 
 {% set specific_user = pillar.get( 'specific_name_user', 'saltstack') %}
@@ -59,7 +63,7 @@ build_cp_salt_targz_{{platform_release}}_sources:
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
 {% else %}
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/sources
-    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}.tar.gz
+    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
     - makedirs: True
@@ -109,6 +113,17 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec:
     - count: 1
 
 
+adjust_branch_curr_salt_pack_{{platform_release}}_spec_version:
+  file.replace:
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
+    - pattern: 'Version: master'
+    - repl: 'Version: {{default_branch_version_number}}'
+    - show_changes: True
+    - count: 1
+    - require:
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec
+
+
 adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog:
   file.line:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
@@ -121,7 +136,7 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog:
         remove_this_line_after_insertion
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_version
 
 
 adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog_cleanup:
@@ -153,17 +168,6 @@ adjust_branch_curr_salt_pack_{{platform_release}}_version_pkgbuild:
 
 {% if base_cfg.build_specific_tag %}
 
-adjust_branch_curr_salt_pack_{{platform_release}}_spec_version:
-  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
-    - pattern: '{{default_branch_version_dotted}}'
-    - repl: '{{base_cfg.build_dsig}}'
-    - show_changes: True
-    - count: 1
-    - require:
-      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec
-
-
 adjust_branch_curr_salt_pack_{{platform_release}}_spec_release:
   file.replace:
     - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/{{platform_release}}/spec/salt.spec
@@ -172,7 +176,7 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release:
     - show_changes: True
     - count: 1
     - require:
-      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_version
+      - file: adjust_branch_curr_salt_pack_{{platform_release}}_spec_pkgbuild
 
 {% endif %}
 

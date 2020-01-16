@@ -2,7 +2,7 @@
 
 ## comment for highlighting
 
-{% set build_branch = base_cfg.build_year ~ '_' ~ base_cfg.build_major_ver %}
+{% set build_branch = base_cfg.build_branch %}
 {% set apt_date = pillar.get('build_apt_date') %}
 
 
@@ -20,7 +20,7 @@
 {% endif %}
 
 {% if base_cfg.build_specific_tag %}
-{% set default_branch_version = build_branch ~'.0' %}
+{% set default_branch_version = build_branch %}
 
 {% if base_cfg.release_level is defined %}
 {% set release_level = pillar.get(base_cfg.release_level, '1') %}
@@ -36,7 +36,7 @@
 {% set pattern_text_date = 'tobereplaced_date' %}
 {% set replacement_text_date = base_cfg.build_dsig %}
 {% set pattern_text_ver = 'tobereplaced_ver' %}
-{% set replacement_text_ver = base_cfg.build_version_full_dotted %}
+{% set replacement_text_ver = base_cfg.build_version %}
 {% endif %}
 
 
@@ -55,8 +55,8 @@ build_cp_salt_targz_{{ubuntu_ver}}_sources:
     - name: {{dir_ubuntu_base}}/sources/salt-{{base_cfg.build_dsig}}.tar.gz
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
 {% else %}
-    - name: {{dir_ubuntu_base}}/sources/salt-{{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}.tar.gz
-    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}.tar.gz
+    - name: {{dir_ubuntu_base}}/sources/salt-{{base_cfg.build_version}}{{base_cfg.build_dsig}}.tar.gz
+    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
     - makedirs: True
@@ -144,9 +144,9 @@ update_branch_curr_salt_pack_version_{{ubuntu_ver}}_changelog:
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- else %}
-        salt ({{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
+        salt ({{base_cfg.build_version}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
 
-          * Build of Salt {{base_cfg.build_version_full_dotted}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
+          * Build of Salt {{base_cfg.build_version}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- endif %}

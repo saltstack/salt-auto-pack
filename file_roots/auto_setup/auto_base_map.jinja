@@ -3,9 +3,9 @@
 # autobuild build_dsig (designation) is passed on command line
 {% set build_dsig = pillar.get('build_dsig', 'nb197001010001') %}
 
-# branch_tag is either branch 2017.7 or tag v2017.7.1
+# branch_tag is either Neon/post-Neon branch master or tag v3000
 # if tag then assume specifc version
-{% set branch_tag = pillar.get('branch_tag', 'develop') %}
+{% set branch_tag = pillar.get('branch_tag', 'master') %}
 
 # get build clean or with currently build dependencies, default not clean
 {% set build_clean = pillar.get('build_clean', 0 ) %}
@@ -38,26 +38,41 @@
 {% set curr_dev_tag = '0' %}
 
 ## generate branch build versions
-{% if branch_tag|first == 'v' %}
-{% set build_specific_tag = true %}                                                 ## specific version v2017.7.1
-{% set build_version_full_dotted = branch_tag|replace("v", "", 1) %}                ## 2017.7.1
-{% set build_version = build_version_full_dotted|replace(".", "_") %}               ## 2017_7_1
-{% else %}
-{% set build_specific_tag = false %}                                                ## branch 2017.7
-{% set build_version_full_dotted = branch_tag ~ '.' ~ curr_dev_tag %}               ## 2017.7
-{% set build_version = branch_tag|replace(".", "_") %}                              ## 2017_7
-{% endif %}
-
-{% set build_version_full_uscore = build_version_full_dotted|replace(".", "_") %}   ## 2017_7_1
-{% set build_version_list = build_version_full_dotted.split(".") %}                 ## generate list [ 2017, 7, 1 ]
-{% set build_year = build_version_list[0] %}                                        ## 2017.7.1 -> 2017
-{% set build_major_ver = build_version_list[1] %}                                   ## 2017.7.1 -> 7
-{% set build_minor_ver = build_version_list[2] %}                                   ## 2017.7.1 -> 1
-
-## produce dotted build version regardless of branch_tag
-{% set build_version_dotted = build_version|replace("_", ".") %}    ## 2017.7 or 2017.7.1
+## {% if branch_tag|first == 'v' %}
+## {% set build_specific_tag = true %}                                                 ## specific version v2017.7.1
+## {% set build_version_full_dotted = branch_tag|replace("v", "", 1) %}                ## 2017.7.1
+## {% set build_version = build_version_full_dotted|replace(".", "_") %}               ## 2017_7_1
+## {% else %}
+## {% set build_specific_tag = false %}                                                ## branch 2017.7
+## {% set build_version_full_dotted = branch_tag ~ '.' ~ curr_dev_tag %}               ## 2017.7
+## {% set build_version = branch_tag|replace(".", "_") %}                              ## 2017_7
+## {% endif %}
+## 
+## {% set build_version_full_uscore = build_version_full_dotted|replace(".", "_") %}   ## 2017_7_1
+## {% set build_version_list = build_version_full_dotted.split(".") %}                 ## generate list [ 2017, 7, 1 ]
+## {% set build_year = build_version_list[0] %}                                        ## 2017.7.1 -> 2017
+## {% set build_major_ver = build_version_list[1] %}                                   ## 2017.7.1 -> 7
+## {% set build_minor_ver = build_version_list[2] %}                                   ## 2017.7.1 -> 1
+## 
+## ## produce dotted build version regardless of branch_tag
+## {% set build_version_dotted = build_version|replace("_", ".") %}    ## 2017.7 or 2017.7.1
+## 
+## {% set branch_checkout_tag = pillar.get('code_named_branch_tag', branch_tag) %}
 
 {% set branch_checkout_tag = pillar.get('code_named_branch_tag', branch_tag) %}
+
+{% if branch_tag|first == 'v' %}
+{% set build_specific_tag = true %}                         ## specific version v3005
+{% set build_branch = 'master' %}                           ## using master branch
+{% set build_version = branch_tag|replace("v", "", 1) %}    ## 3005
+{% set build_number = build_version %}
+{% else %}
+{% set build_specific_tag = false %}                        ## branch master
+{% set build_branch = branch_checkout_tag %}                ## master or specific named branch
+{% set build_version = build_branch %}
+{% set build_number = '3000' %}                             ## default to 3000, dsig will add differentiator
+{% endif %}
+
 
 
 ## Get the home and gpg keys directories to use, some tools assume ~/.gnupg
