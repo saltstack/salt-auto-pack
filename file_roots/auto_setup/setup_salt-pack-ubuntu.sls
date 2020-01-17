@@ -3,8 +3,11 @@
 ## comment for highlighting
 
 {% set build_branch = base_cfg.build_branch %}
-{% set apt_date = pillar.get('build_apt_date') %}
+{% set default_branch_version_number = base_cfg.build_number %}
+{% set default_branch_version_number_noughts  = base_cfg.build_number ~ base_cfg.build_patch_number %}
+{% set default_branch_prefix = 'master' %}
 
+{% set apt_date = pillar.get('build_apt_date') %}
 
 {% set build_py3 = pillar.get('build_py3', False) %}
 {% if build_py3 %}
@@ -14,13 +17,11 @@
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
-
 {% set ubuntu_supported = ['ubuntu1804', 'ubuntu1604'] %}
-
 {% endif %}
 
+
 {% if base_cfg.build_specific_tag %}
-{% set default_branch_version = build_branch %}
 
 {% if base_cfg.release_level is defined %}
 {% set release_level = pillar.get(base_cfg.release_level, '1') %}
@@ -31,32 +32,34 @@
 {% set pattern_text_date = 'tobereplaced_date' %}
 {% set replacement_text_date = '' %}
 {% set pattern_text_ver = 'tobereplaced_ver' %}
-{% set replacement_text_ver = base_cfg.build_dsig %}
+{% set replacement_text_ver = default_branch_version_number_noughts %}
+
 {% else %}
+
 {% set pattern_text_date = 'tobereplaced_date' %}
 {% set replacement_text_date = base_cfg.build_dsig %}
 {% set pattern_text_ver = 'tobereplaced_ver' %}
-{% set replacement_text_ver = base_cfg.build_version %}
+{% set replacement_text_ver = default_branch_version_number_noughts %}
+
 {% endif %}
 
 
 {% set specific_user = pillar.get( 'specific_name_user', 'saltstack') %}
-
 {% set spec_file_tarball = 'salt_ubuntu.tar.xz' %}
 
 
-{% for ubuntu_ver in ubuntu_supported %}
+{% for platform_release in ubuntu_supported %}
 
-{% set dir_ubuntu_base = base_cfg.build_salt_pack_dir ~ '/file_roots/pkg/salt/' ~ base_cfg.build_version ~ '/' ~ ubuntu_ver %}
+{% set dir_platform_base = base_cfg.build_salt_pack_dir ~ '/file_roots/pkg/salt/' ~ base_cfg.build_version ~ '/' ~ platform_release %}
 
-build_cp_salt_targz_{{ubuntu_ver}}_sources:
+build_cp_salt_targz_{{platform_release}}_sources:
   file.copy:
 {% if base_cfg.build_specific_tag %}
-    - name: {{dir_ubuntu_base}}/sources/salt-{{base_cfg.build_dsig}}.tar.gz
+    - name: {{dir_platform_base}}/sources/salt-{{base_cfg.build_dsig}}.tar.gz
     - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
 {% else %}
-    - name: {{dir_ubuntu_base}}/sources/salt-{{base_cfg.build_version}}{{base_cfg.build_dsig}}.tar.gz
-    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_version}}{{base_cfg.build_dsig}}.tar.gz
+    - name: {{dir_platform_base}}/sources/salt-{{default_branch_version_number_noughts}}{{base_cfg.build_dsig}}.tar.gz
+    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{default_branch_version_number_noughts}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
     - makedirs: True
@@ -65,41 +68,41 @@ build_cp_salt_targz_{{ubuntu_ver}}_sources:
     - subdir: True
 
 
-adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_init_date:
+adjust_branch_curr_salt_pack_version_{{platform_release}}_init_date:
   file.replace:
-    - name: {{dir_ubuntu_base}}/init.sls
+    - name: {{dir_platform_base}}/init.sls
     - pattern: '{{pattern_text_date}}'
     - repl: '{{replacement_text_date}}'
     - show_changes: True
 
 
-adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_init_ver:
+adjust_branch_curr_salt_pack_version_{{platform_release}}_init_ver:
   file.replace:
-    - name: {{dir_ubuntu_base}}/init.sls
+    - name: {{dir_platform_base}}/init.sls
     - pattern: '{{pattern_text_ver}}'
     - repl: '{{replacement_text_ver}}'
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_init_date
+      - file: adjust_branch_curr_salt_pack_version_{{platform_release}}_init_date
 
 
 {% if base_cfg.build_specific_tag %}
 
-adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_init_release_ver:
+adjust_branch_curr_salt_pack_version_{{platform_release}}_init_release_ver:
   file.replace:
-    - name: {{dir_ubuntu_base}}/init.sls
+    - name: {{dir_platform_base}}/init.sls
     - pattern: "release_ver = '0'"
     - repl: "release_ver = '{{release_level}}'"
     - show_changes: True
     - require:
-      - file: adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_init_ver
+      - file: adjust_branch_curr_salt_pack_version_{{platform_release}}_init_ver
 
 {% endif %}
 
 
-adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_directory:
+adjust_branch_curr_salt_pack_version_{{platform_release}}_directory:
   file.directory:
-    - name: {{dir_ubuntu_base}}
+    - name: {{dir_platform_base}}
     - force: True
     - makedirs: True
     - group: {{base_cfg.build_runas}}
@@ -112,29 +115,29 @@ adjust_branch_curr_salt_pack_version_{{ubuntu_ver}}_directory:
       - mode
 
 
-unpack_branch_curr_salt_pack_version_{{ubuntu_ver}}_spec:
+unpack_branch_curr_salt_pack_version_{{platform_release}}_spec:
   module.run:
     - name: archive.tar
-    - tarfile: {{dir_ubuntu_base}}/spec/{{spec_file_tarball}}
-    - dest: {{dir_ubuntu_base}}/spec/
-    - cwd: {{dir_ubuntu_base}}/spec/
+    - tarfile: {{dir_platform_base}}/spec/{{spec_file_tarball}}
+    - dest: {{dir_platform_base}}/spec/
+    - cwd: {{dir_platform_base}}/spec/
     - runas: {{base_cfg.build_runas}}
     - options: -xvJf
 
 
-remove_branch_curr_salt_pack_version_{{ubuntu_ver}}_changelog:
+remove_branch_curr_salt_pack_version_{{platform_release}}_changelog:
   file.absent:
-    - name: {{dir_ubuntu_base}}/spec/debian/changelog
+    - name: {{dir_platform_base}}/spec/debian/changelog
 
 
-touch_branch_curr_salt_pack_version_{{ubuntu_ver}}_changelog:
+touch_branch_curr_salt_pack_version_{{platform_release}}_changelog:
   file.touch:
-    - name: {{dir_ubuntu_base}}/spec/debian/changelog
+    - name: {{dir_platform_base}}/spec/debian/changelog
 
 
-update_branch_curr_salt_pack_version_{{ubuntu_ver}}_changelog:
+update_branch_curr_salt_pack_version_{{platform_release}}_changelog:
   file.append:
-    - name: {{dir_ubuntu_base}}/spec/debian/changelog
+    - name: {{dir_platform_base}}/spec/debian/changelog
     - ignore_whitespace: False
     - text: |
 {%- if base_cfg.build_specific_tag %}
@@ -144,41 +147,41 @@ update_branch_curr_salt_pack_version_{{ubuntu_ver}}_changelog:
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- else %}
-        salt ({{base_cfg.build_version}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
+        salt ({{default_branch_version_number_noughts}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
 
-          * Build of Salt {{base_cfg.build_version}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
+          * Build of Salt {{default_branch_version_number_noughts}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- endif %}
     - require:
-      - file: remove_branch_curr_salt_pack_version_{{ubuntu_ver}}_changelog
+      - file: remove_branch_curr_salt_pack_version_{{platform_release}}_changelog
 
 
-pack_branch_curr_salt_pack_version_{{ubuntu_ver}}_spec:
+pack_branch_curr_salt_pack_version_{{platform_release}}_spec:
    module.run:
      - name: archive.tar
      - tarfile: {{spec_file_tarball}}
-     - dest: {{dir_ubuntu_base}}/spec
+     - dest: {{dir_platform_base}}/spec
      - sources: debian
-     - cwd: {{dir_ubuntu_base}}/spec
+     - cwd: {{dir_platform_base}}/spec
      - runas: {{base_cfg.build_runas}}
      - options: -cvJf
 
 
-cleanup_pack_branch_curr_salt_pack_version_{{ubuntu_ver}}_spec:
+cleanup_pack_branch_curr_salt_pack_version_{{platform_release}}_spec:
   file.absent:
-    - name: {{dir_ubuntu_base}}/spec/debian
+    - name: {{dir_platform_base}}/spec/debian
 
 {% endfor %}
 
 
 {% if base_cfg.build_specific_tag %}
 
-update_versions_ubuntu_{{base_cfg.build_version}}:
+update_versions_ubuntu_{{default_branch_version_number}}:
  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/ubuntu_pkg.sls
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{default_branch_version_number}}/ubuntu_pkg.sls
     - pattern: '{{build_branch}}'
-    - repl: '{{base_cfg.build_version}}'
+    - repl: '{{default_branch_version_number_noughts}}'
     - show_changes: True
 
 {% endif %}

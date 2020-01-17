@@ -324,6 +324,15 @@ update_cloud_bootstrap_latest:
   cmd.run:
     - name: "salt-cloud -u"
 
+## DGM temporary fix-workaround till next bootstrap release 2020-15-01
+update_cloud_bootstrap_latest_p1:
+  cmd.run:
+    - name: "cp -f /home/centos/test/bootstrap-salt.sh /etc/salt/cloud.deploy.d/bootstrap-salt.sh"
+
+update_cloud_bootstrap_latest_p2:
+  cmd.run:
+    - name: "cp -f /home/centos/test/bootstrap-salt.sh /usr/lib/python2.7/site-packages/salt/cloud/deploy/bootstrap-salt.sh"
+
 
 launch_cloud_map:
   cmd.run:

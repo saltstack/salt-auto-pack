@@ -73,6 +73,8 @@
 {% set build_number = '3000' %}                             ## default to 3000, dsig will add differentiator
 {% endif %}
 
+## Patch level, normally empty, currently '.0.0' until versioning sorted in Salt
+{% set build_patch_number = '.0.0' %}
 
 
 ## Get the home and gpg keys directories to use, some tools assume ~/.gnupg
