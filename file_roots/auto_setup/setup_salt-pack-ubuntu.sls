@@ -3,9 +3,7 @@
 ## comment for highlighting
 
 {% set build_branch = base_cfg.build_branch %}
-{% set default_branch_version_number = base_cfg.build_number %}
-{% set default_branch_version_number_noughts  = base_cfg.build_number ~ base_cfg.build_patch_number %}
-{% set default_branch_prefix = 'master' %}
+{% set default_branch_version_number_dotted  = base_cfg.build_number_dotted %}
 
 {% set apt_date = pillar.get('build_apt_date') %}
 
@@ -32,14 +30,14 @@
 {% set pattern_text_date = 'tobereplaced_date' %}
 {% set replacement_text_date = '' %}
 {% set pattern_text_ver = 'tobereplaced_ver' %}
-{% set replacement_text_ver = default_branch_version_number_noughts %}
+{% set replacement_text_ver = default_branch_version_number_dotted %}
 
 {% else %}
 
 {% set pattern_text_date = 'tobereplaced_date' %}
 {% set replacement_text_date = base_cfg.build_dsig %}
 {% set pattern_text_ver = 'tobereplaced_ver' %}
-{% set replacement_text_ver = default_branch_version_number_noughts %}
+{% set replacement_text_ver = default_branch_version_number_dotted %}
 
 {% endif %}
 
@@ -50,20 +48,21 @@
 
 {% for platform_release in ubuntu_supported %}
 
-{% set dir_platform_base = base_cfg.build_salt_pack_dir ~ '/file_roots/pkg/salt/' ~ base_cfg.build_version ~ '/' ~ platform_release %}
+{% set dir_platform_base = base_cfg.build_salt_pack_dir ~ '/file_roots/pkg/salt/' ~ base_cfg.build_number_uscore ~ '/' ~ platform_release %}
 
 build_cp_salt_targz_{{platform_release}}_sources:
   file.copy:
 {% if base_cfg.build_specific_tag %}
-    - name: {{dir_platform_base}}/sources/salt-{{base_cfg.build_dsig}}.tar.gz
-    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{base_cfg.build_dsig}}.tar.gz
+    - name: {{dir_platform_base}}/sources/salt-{{default_branch_version_number_dotted}}.tar.gz
+    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{default_branch_version_number_dotted}}.tar.gz
 {% else %}
-    - name: {{dir_platform_base}}/sources/salt-{{default_branch_version_number_noughts}}{{base_cfg.build_dsig}}.tar.gz
-    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{default_branch_version_number_noughts}}{{base_cfg.build_dsig}}.tar.gz
+    - name: {{dir_platform_base}}/sources/salt-{{default_branch_version_number_dotted}}{{base_cfg.build_dsig}}.tar.gz
+    - source: {{base_cfg.build_salt_dir}}/dist/salt-{{default_branch_version_number_dotted}}{{base_cfg.build_dsig}}.tar.gz
 {% endif %}
     - force: True
     - makedirs: True
-    - preserve: True
+    - dir_mode: 755
+    - file_mode: 644
     - user: {{base_cfg.build_runas}}
     - subdir: True
 
@@ -141,15 +140,15 @@ update_branch_curr_salt_pack_version_{{platform_release}}_changelog:
     - ignore_whitespace: False
     - text: |
 {%- if base_cfg.build_specific_tag %}
-        salt ({{base_cfg.build_dsig}}+ds-{{release_level}}) stable; urgency=medium
+        salt ({{default_branch_version_number_dotted}}+ds-{{release_level}}) stable; urgency=medium
 
-          * Build of Salt {{base_cfg.build_dsig}}{{changelog_text_py_ver}}
+          * Build of Salt {{default_branch_version_number_dotted}}{{changelog_text_py_ver}}
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- else %}
-        salt ({{default_branch_version_number_noughts}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
+        salt ({{default_branch_version_number_dotted}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
 
-          * Build of Salt {{default_branch_version_number_noughts}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
+          * Build of Salt {{default_branch_version_number_dotted}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- endif %}
@@ -175,14 +174,10 @@ cleanup_pack_branch_curr_salt_pack_version_{{platform_release}}_spec:
 {% endfor %}
 
 
-{% if base_cfg.build_specific_tag %}
-
-update_versions_ubuntu_{{default_branch_version_number}}:
+update_versions_ubuntu_{{base_cfg.build_number_uscore}}:
  file.replace:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{default_branch_version_number}}/ubuntu_pkg.sls
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_number_uscore}}/ubuntu_pkg.sls
     - pattern: '{{build_branch}}'
-    - repl: '{{default_branch_version_number_noughts}}'
+    - repl: '{{base_cfg.build_number_uscore}}'
     - show_changes: True
-
-{% endif %}
 

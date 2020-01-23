@@ -79,7 +79,7 @@ build_write_version_override:
     - name: {{uder_version_file}}
     - text: |
         from salt.version import SaltStackVersion
-        __saltstack_version__ = SaltStackVersion( {{base_cfg.build_number}}, 0, 0, 0, '{{dsig_chars}}', {{dsig_numbs}}, 0, None )
+        __saltstack_version__ = SaltStackVersion( {{base_cfg.build_nb_number}}, 0, 0, 0, '{{dsig_chars}}', {{dsig_numbs}}, 0, None )
 
 
 build_write_version_override_rights:

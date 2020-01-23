@@ -64,7 +64,7 @@ write_build_pkgbuild_file:
     - makedirs: True
     - text: |
         # set version to build
-        {{'{%'}} set build_version = '{{base_cfg.build_version}}' {{'%}'}}
+        {{'{%'}} set build_version = '{{base_cfg.build_number_uscore}}' {{'%}'}}
 
         {% raw %}
         {% if build_version != '' %}
@@ -74,11 +74,10 @@ write_build_pkgbuild_file:
         {% endraw %}
 
 
-{% if base_cfg.build_specific_tag %}
 ## ensure tagged directory exists and is updated
 copy_working_branch_to_tagged_pillar_directory:
   file.copy:
-    - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_version}}/pkgbuild.sls
+    - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_number_uscore}}/pkgbuild.sls
     - source: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{build_branch}}/pkgbuild.sls
     - dir_mode: 755
     - file_mode: 644
@@ -88,39 +87,47 @@ copy_working_branch_to_tagged_pillar_directory:
 
 ensure_versions_directory:
   file.directory:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}
-    - user: {{base_cfg.build_runas}}
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_number_uscore}}
     - dir_mode: 755
     - file_mode: 644
     - makedirs: True
+    - user: {{base_cfg.build_runas}}
+    - group: {{base_cfg.build_runas}}
+    - recurse:
+        - user
+        - group
+        - mode
 
 
 ensure_salt_directory:
   file.directory:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}
-    - user: {{base_cfg.build_runas}}
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_number_uscore}}
     - dir_mode: 755
     - file_mode: 644
     - makedirs: True
+    - user: {{base_cfg.build_runas}}
+    - group: {{base_cfg.build_runas}}
+    - recurse:
+        - user
+        - group
+        - mode
 
 
 copy_working_branch_to_tagged_file_salt_directory:
   cmd.run:
-    - name: cp -f -R {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{build_branch}}/* {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_version}}/
+    - name: cp -f -R {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{build_branch}}/* {{base_cfg.build_salt_pack_dir}}/file_roots/pkg/salt/{{base_cfg.build_number_uscore}}/
 
 
 copy_working_branch_to_tagged_file_directory:
   cmd.run:
-    - name: cp -f -R {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{build_branch}}/* {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/
+    - name: cp -f -R {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{build_branch}}/* {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_number_uscore}}/
     - require:
       - cmd: copy_working_branch_to_tagged_file_salt_directory
 
 
 ensure_dirs_copied:
   file.exists:
-    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_version}}/ubuntu_pkg.sls
+    - name: {{base_cfg.build_salt_pack_dir}}/file_roots/versions/{{base_cfg.build_number_uscore}}/ubuntu_pkg.sls
     - require:
       - cmd: copy_working_branch_to_tagged_file_directory
-
-{% endif %}
 

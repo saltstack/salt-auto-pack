@@ -220,6 +220,7 @@ else
 fi
 
 ## output Branch signifier
+echo "Release Branch Tag is \'${BRANCH_TAG}\'"
 echo "Release DSIG Branch is \'${RELEASE_DSIG_BRANCH}\'"
 
 
