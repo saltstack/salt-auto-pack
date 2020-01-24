@@ -1,7 +1,6 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
 
-{% set build_branch = base_cfg.build_branch %}
 {% set default_branch_version_number_uscore = base_cfg.build_number_uscore %}
 {% set default_branch_version_number_dotted  = base_cfg.build_number_dotted %}
 
@@ -184,8 +183,9 @@ build_init_{{minion_platform}}:
     - sls:
       - setup.{{minion_specific}}
     - pillar:
-        build_release: {{tgt_build_release}}
-        build_arch: {{tgt_build_arch}}
+        build_release: "{{tgt_build_release}}"
+        build_arch: "{{tgt_build_arch}}"
+        build_version: "{{default_branch_version_number_uscore}}"
     - require:
       - salt: refresh_pillars_{{minion_platform}}
 
@@ -291,8 +291,9 @@ build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}:
     - queue: True
     - highstate: True
     - pillar:
-        build_release: {{tgt_build_release}}
-        build_arch: {{tgt_build_arch}}
+        build_release: "{{tgt_build_release}}"
+        build_arch: "{{tgt_build_arch}}"
+        build_version: "{{default_branch_version_number_uscore}}"
 
 
 copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}:
@@ -312,8 +313,9 @@ sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
     - sls:
       - repo.{{minion_specific}}
     - pillar:
-        build_release: {{tgt_build_release}}
-        build_arch: {{tgt_build_arch}}
+        build_release: "{{tgt_build_release}}"
+        build_arch: "{{tgt_build_arch}}"
+        build_version: "{{default_branch_version_number_uscore}}"
 {%- if pphrase_flag %}
         gpg_passphrase: {{pphrase}}
 {%- endif %}

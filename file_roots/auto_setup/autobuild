@@ -63,7 +63,7 @@ _usage() {
     echo "  -n, --named_branch  git named branch for example: nitrogen, my_user_branch1, no default"
     echo "  -o, --user_salt_only only use username git's salt for build, used in conjunction with --user, default false"
     echo "  -p, --pack_branch   name of salt-pack branch to use, default master"
-    echo "  -q, --python2       Python version to build, default Python 3 (False), Python2 set to True"
+    echo "  -q, --python2       Python version to build, default Python 3 (false), Python2 set to true"
     echo "  -r, --nfs_opts      NFS options used to mount NFS server's directories"
     echo "  -s, --specific_name specifically named version to build, default dated autobuild, for example: rc1"
     echo "  -t, --tag           build tagged release, for example: v3000 for specific release version,"
@@ -98,7 +98,7 @@ _usage() {
 
 VERBOSE=0
 CLEAN_BLD=0
-DEBUG=False
+DEBUG=false
 USAGE_HELP=false
 LOG_MODE='debug'
 ATTEMPT_PYPI=0
@@ -109,8 +109,8 @@ RELEASE_SPECIFIC_NAME_BRANCH=''
 RELEASE_DSIG_BRANCH=''
 RELEASE_SPECIFIC_NAME_USER=''
 RELEASE_SPECIFIC_PACK_BRANCH=''
-RELEASE_SPECIFIC_USER_SALT_ONLY=False
-PYTHON3_FLAG=True
+RELEASE_SPECIFIC_USER_SALT_ONLY=false
+PYTHON3_FLAG=true
 
 ## NFS Mount Defaults, note req. match values in auto_base_map.jinja
 ## DEFAULT_NFS_OPTS='bldressrv'
@@ -131,7 +131,7 @@ NFS_ABSDIR="${DEFAULT_NFS_ABSDIR}"
 MOUNT_NFSDIR="${DEFAULT_MOUNT_NFSDIR}"
 
 CLOUD_MAP=''
-CLOUD_HOLD_FLAG=False
+CLOUD_HOLD_FLAG=false
 
 ## minion resident on Salt-Master node
 CODE_MINION='m7m'
@@ -157,12 +157,12 @@ while true; do
     -c | --clean ) CLEAN_BLD=1; shift ;;
     -g | --cloud_map ) CLOUD_MAP="$2"; shift 2 ;;
     -h | --help ) USAGE_HELP=true; shift ;;
-    -j | --cloud_hold ) CLOUD_HOLD_FLAG=True; shift ;;
+    -j | --cloud_hold ) CLOUD_HOLD_FLAG=true; shift ;;
     -m | --minion ) CODE_MINION="$2"; shift 2 ;;
     -n | --named_branch ) RELEASE_CODE_NAMED_BRANCH="$2"; shift 2 ;;
-    -o | --user_salt_only) RELEASE_SPECIFIC_USER_SALT_ONLY=True; shift ;;
+    -o | --user_salt_only) RELEASE_SPECIFIC_USER_SALT_ONLY=true; shift ;;
     -p | --pack_branch) RELEASE_SPECIFIC_PACK_BRANCH="$2"; shift 2 ;;
-    -q | --python2 ) PYTHON3_FLAG=False; shift ;;
+    -q | --python2 ) PYTHON3_FLAG=false; shift ;;
     -r | --nfs_opts) NFS_OPTS="$2"; shift 2 ;;
     -s | --specific_name) RELEASE_SPECIFIC_NAME_BRANCH="$2"; shift 2 ;;
     -t | --tag ) RELEASE_TAG="$2"; ATTEMPT_PYPI=1; shift 2 ;;
@@ -358,11 +358,11 @@ do
     ## work-around for some needed packages installed which are unavailable from the OS or Salt currently (first time - bootstrap)
     if [[ -d bootstrap-pkgs ]]; then
         if [[ $nx == svc-builder-autotest-c8m* ]]; then
-            if [[ ${PYTHON3_FLAG} && (-f './bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm') ]]; then
+            if [[ ( ${PYTHON3_FLAG} ) && (-f './bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm') ]]; then
                 salt $nx pkg.install  reinstall=True sources='[{"python3-gnupg": "salt://auto_setup/bootstrap-pkgs/python3-gnupg-0.4.4-2.el8.noarch.rpm"}]'
             fi
         elif [[ $nx == svc-builder-autotest-c7m* ]]; then
-            if [[ ${PYTHON3_FLAG} && (-f './bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm') ]]; then
+            if [[ ( ${PYTHON3_FLAG} ) && (-f './bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm') ]]; then
                 salt $nx pkg.install reinstall=True sources='[{"python36-gnupg": "salt://auto_setup/bootstrap-pkgs/python36-gnupg-0.4.4-2.el7.noarch.rpm"}]'
             fi
         fi
@@ -374,7 +374,7 @@ do
             _error "$SCRIPTNAME:state for auto_setup failed to execute ubuntu1804_wrkaround.sh for '${BRANCH_TAG}', retcode '${$?}'";
         }
         salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
-    elif [[ $nx == svc-builder-autotest-d* ]]; then
+    elif [[ ( $nx == svc-builder-autotest-d9* ) || ( $nx == svc-builder-autotest-d10* ) ]]; then
         salt ${CODE_MINION} state.sls auto_setup.debian_wrkaround
         /srv/salt/auto_setup/debian_wrkaround.sh "${nx}" || {
             _error "$SCRIPTNAME:state for auto_setup failed to execute debian_wrkaround.sh for '${nx}' on '${BRANCH_TAG}', retcode '${$?}'";
