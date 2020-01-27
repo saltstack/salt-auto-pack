@@ -17,7 +17,7 @@
 {%- else %}
 {% set rhel7_available = true %}
 {%- endif %}
-{% if build_py3 and base_cfg.build_year >= 2019 %}
+{% if build_py3 and base_cfg.build_year >= '2019' %}
 {% set debian10_available = true %}
 {% set rhel8_available = true %}
 {% set amzn2_available = true %}
@@ -104,9 +104,9 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
 {%- if build_py3 %}
-          script_args: -x python3 stable 2019.2.2
+          script_args: -x python3 stable 2019.2.3
 {%- else %}
-          script_args: stable 2019.2.2
+          script_args: stable 2019.2.3
 {%- endif %}
 {% endif %}
         svc-builder-debian9{{unique_postfix}}:
@@ -127,7 +127,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2019.2.2
+          script_args: stable 2019.2.3
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0d5f916f52836397d
@@ -146,7 +146,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2019.2.2
+          script_args: stable 2019.2.3
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f7157f751a882a04
@@ -165,7 +165,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2019.2.2
+          script_args: stable 2019.2.3
 {%- if build_py3 %}
 {%- if rhel8_available %}
         svc-builder-cent8{{unique_postfix}}:
@@ -186,7 +186,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 2019.2.2
+          script_args: -x python3 stable 2019.2.3
 {%- endif %}
 {%- if debian10_available %}
         svc-builder-debian10{{unique_postfix}}:
@@ -207,7 +207,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 2019.2.2
+          script_args: -x python3 stable 2019.2.3
 {%- endif %}
 {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
@@ -228,7 +228,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 2019.2.2
+          script_args: -x python3 stable 2019.2.3
 {%- endif %}
 {% else %}
         svc-builder-amzn1{{unique_postfix}}:
@@ -268,7 +268,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2019.2.2
+          script_args: stable 2019.2.3
 {%- endif %}
 
 
@@ -323,6 +323,15 @@ create_dflt_map:
 update_cloud_bootstrap_latest:
   cmd.run:
     - name: "salt-cloud -u"
+
+## DGM temporary fix-workaround till next bootstrap release 2020-15-01
+update_cloud_bootstrap_latest_p1:
+  cmd.run:
+    - name: "cp -f /home/centos/test/bootstrap-salt.sh /etc/salt/cloud.deploy.d/bootstrap-salt.sh"
+
+update_cloud_bootstrap_latest_p2:
+  cmd.run:
+    - name: "cp -f /home/centos/test/bootstrap-salt.sh /usr/lib/python2.7/site-packages/salt/cloud/deploy/bootstrap-salt.sh"
 
 
 launch_cloud_map:
