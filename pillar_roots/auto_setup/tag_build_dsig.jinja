@@ -1,11 +1,18 @@
-{% set branch_tag = '2018.3' %}
-{% set build_dsig = 'nb201804132100229785440' %}
+{% set branch_tag = 'master' %}
+{% set build_dsig = 'nb202001152322061558897' %}
 {% set build_local_minion = 'm7m' %}
 {% set nfs_opts = '-t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport' %}
-{% set nfs_host = 'fs-6e0b6fc6.efs.us-west-2.amazonaws.com' %}
+{% set nfs_host = 'fs-0a5660a2.efs.us-west-2.amazonaws.com' %}
 {% set nfs_absdir = '/' %}
 {% set mount_nfsdir = '/mnt_build_res' %}
-{% set build_apt_date = 'Fri, 13 Apr 2018 21:00:22 +0000' %}
-{% set build_rpm_date = 'Fri Apr 13 2018' %}
-{% set build_py3 = False %}
+{% set build_apt_date = 'Wed, 15 Jan 2020 23:22:06 +0000' %}
+{% set build_rpm_date = 'Wed Jan 15 2020' %}
+{% set build_py3 = True %}
 {% set build_cloud_hold = False %}
+{% set uniqueval = 30510 %}
+{% set subnet_id = 'subnet-to-be-determined' %}
+{% set sec_group_id = 'sec-group-to-be-determined' %}
+{% set aws_access_priv_key_name = 'aws-file-key-name-to-be-determined' %}
+{% set specific_name_user_salt_only = False %}
+{% set specific_name_user = 'dmurphy18' %}
+{% set specific_pack_branch = 'prep_neon_py3' %}

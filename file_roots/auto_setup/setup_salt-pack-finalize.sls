@@ -2,7 +2,7 @@
 
 remove_any_salt_target_platforms:
   file.absent:
-    - name: /srv/salt/pkg/salt/{{base_cfg.build_version}}
+    - name: /srv/salt/pkg/salt/{{base_cfg.build_number_uscore}}
 
 
 ## finally setup salt-pack files on master, noting auto_setup should not get overwritten
@@ -102,4 +102,15 @@ adjust_salt_pack_master_pillar_top_match:
     - require:
       - file: adjust_salt_pack_master_pillar_top_keys
 
+
+cleanup_pillar_bak:
+  cmd.run:
+    - name: |
+        find /srv/pillar -name "*.bak" | xargs rm -f
+
+
+cleanup_salt_bak:
+  cmd.run:
+    - name: |
+        find /srv/salt -name "*.bak" | xargs rm -f
 

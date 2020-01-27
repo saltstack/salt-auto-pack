@@ -4,3 +4,4 @@
 build_dest: '/srv/ubuntu/{{base_cfg.build_dest_dir}}/pkgs'
 build_version: '{{base_cfg.build_version}}'
 build_runas: 'ubuntu'
+build_release: 'ubuntu1804'

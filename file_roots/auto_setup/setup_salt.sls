@@ -24,7 +24,7 @@
 
 {% else %}
 
-{% set have_tag_from_pypi_dict = salt.cmd.run("salt " ~ build_local_minion ~ " file.file_exists " ~ base_cfg.build_salt_pypi_dir ~ "/salt-" ~ base_cfg.build_version_full_dotted ~ ".tar.gz -l quiet --out=json")  | load_json %}
+{% set have_tag_from_pypi_dict = salt.cmd.run("salt " ~ build_local_minion ~ " file.file_exists " ~ base_cfg.build_salt_pypi_dir ~ "/salt-" ~ base_cfg.build_version ~ ".tar.gz -l quiet --out=json")  | load_json %}
 {% if have_tag_from_pypi_dict[build_local_minion] == True %}
 {% set have_tag_from_pypi = true %}
 {% else %}
@@ -61,7 +61,11 @@ retrieve_desired_salt:
   git.latest:
     - name: https://github.com/{{specific_user}}/salt.git
     - target: {{base_cfg.build_salt_dir}}
-    - rev: {{base_cfg.branch_checkout_tag}}
+{% if base_cfg.build_specific_tag %}
+    - rev: {{base_cfg.branch_tag}}
+{% else %}
+    - rev: {{base_cfg.build_branch}}
+{% endif %}
     - user: {{base_cfg.build_runas}}
     - force_reset: True
     - force_clone: True
@@ -79,7 +83,7 @@ build_write_version_override:
     - name: {{uder_version_file}}
     - text: |
         from salt.version import SaltStackVersion
-        __saltstack_version__ = SaltStackVersion( {{base_cfg.build_year}}, {{base_cfg.build_major_ver}}, {{base_cfg.build_minor_ver}}, 0, '{{dsig_chars}}', {{dsig_numbs}}, 0, None )
+        __saltstack_version__ = SaltStackVersion( {{base_cfg.build_nb_number}}, 0, 0, 0, '{{dsig_chars}}', {{dsig_numbs}}, 0, None )
 
 
 build_write_version_override_rights:
@@ -145,7 +149,7 @@ ensure_dist:
 use_pypi_dist:
   cmd.run:
     - name:
-        cp {{base_cfg.build_salt_pypi_dir}}/salt-{{base_cfg.build_version_full_dotted}}.tar.gz  {{base_cfg.build_salt_dir}}/dist/
+        cp {{base_cfg.build_salt_pypi_dir}}/salt-{{base_cfg.build_version}}.tar.gz  {{base_cfg.build_salt_dir}}/dist/
 
 
 cleanup_pypi_dist:
