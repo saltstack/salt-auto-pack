@@ -57,9 +57,9 @@
 {% set nb_srcdir = build_dest ~ '/' ~ build_py_ver ~ '/' ~ minion_platform ~ '/' ~ build_arch %}
 
 {% if base_cfg.build_specific_tag %}
-{% set nb_destdir = base_cfg.build_dsig %}
+{% set nb_destdir = base_cfg.build_number_dotted %}
 {% else %}
-{% set nb_destdir = base_cfg.build_version ~ base_cfg.build_dsig %}
+{% set nb_destdir = base_cfg.build_number_dotted ~ base_cfg.build_dsig %}
 {% endif %}
 
 ## if Python 3 then override yum or apt

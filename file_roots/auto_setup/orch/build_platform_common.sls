@@ -1,5 +1,9 @@
 {% import "auto_setup/auto_base_map.jinja" as base_cfg %}
 
+
+{% set default_branch_version_number_uscore = base_cfg.build_number_uscore %}
+{% set default_branch_version_number_dotted  = base_cfg.build_number_dotted %}
+
 ## determine if build Python 3
 {% set build_py3 = pillar.get('build_py3', False) %}
 {% if build_py3 %}
@@ -97,7 +101,7 @@
 {% if base_cfg.build_specific_tag %}
 {% set nb_destdir = base_cfg.build_dsig %}
 {% else %}
-{% set nb_destdir = base_cfg.build_version ~ base_cfg.build_dsig %}
+{% set nb_destdir = default_branch_version_number_dotted ~ base_cfg.build_dsig %}
 {% endif %}
 
 ## if Python 3 then override yum or apt
@@ -107,7 +111,7 @@
 
 {% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ repo_dsig ~ '/' ~ os_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 {% set nfs_server_archive_dir = nfs_server_base_dir ~ '/archive/' ~ nb_destdir %}
-{% set nfs_server_branch_symlink = nfs_server_base_dir ~ '/' ~ base_cfg.build_version_dotted %}
+{% set nfs_server_branch_symlink = nfs_server_base_dir ~ '/' ~ default_branch_version_number_dotted %}
 
 {% set my_tgt_link_dict = salt.cmd.run('salt ' ~ build_local_id ~ ' file.is_link ' ~ nfs_server_branch_symlink ~ ' -l quiet --out=json') | load_json  %}
 {% if my_tgt_link_dict[build_local_id] == True %}
@@ -179,8 +183,9 @@ build_init_{{minion_platform}}:
     - sls:
       - setup.{{minion_specific}}
     - pillar:
-        build_release: {{tgt_build_release}}
-        build_arch: {{tgt_build_arch}}
+        build_release: "{{tgt_build_release}}"
+        build_arch: "{{tgt_build_arch}}"
+        build_version: "{{default_branch_version_number_uscore}}"
     - require:
       - salt: refresh_pillars_{{minion_platform}}
 
@@ -244,7 +249,7 @@ ensure_dest_dir_exists_{{minion_platform}}:
       - salt: mount_nfs_{{minion_platform}}
 
 
-copy_pub_keys_for_packages_{{base_cfg.build_version}}_{{minion_platform}}:
+copy_pub_keys_for_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
@@ -255,7 +260,7 @@ copy_pub_keys_for_packages_{{base_cfg.build_version}}_{{minion_platform}}:
 
 
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
-copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}:
+copy_deps_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
@@ -266,7 +271,7 @@ copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}:
 {% endif %}
 
 
-cleanup_any_build_products_{{base_cfg.build_version}}_{{minion_platform}}:
+cleanup_any_build_products_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
@@ -274,49 +279,51 @@ cleanup_any_build_products_{{base_cfg.build_version}}_{{minion_platform}}:
       - auto_setup.cleanup_build_product
     - require:
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
-      - salt: copy_deps_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: copy_deps_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}
 {% else %}
       - salt: ensure_dest_dir_exists_{{minion_platform}}
 {% endif %}
 
 
-build_highstate_{{base_cfg.build_version}}_{{minion_platform}}:
+build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
     - highstate: True
     - pillar:
-        build_release: {{tgt_build_release}}
-        build_arch: {{tgt_build_arch}}
+        build_release: "{{tgt_build_release}}"
+        build_arch: "{{tgt_build_arch}}"
+        build_version: "{{default_branch_version_number_uscore}}"
 
 
-copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}:
+copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
     - sls:
       - auto_setup.copy_build_deps_check_repo
     - require:
-      - salt: build_highstate_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}
 
 
-sign_packages_{{base_cfg.build_version}}_{{minion_platform}}:
+sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
     - sls:
       - repo.{{minion_specific}}
     - pillar:
-        build_release: {{tgt_build_release}}
-        build_arch: {{tgt_build_arch}}
+        build_release: "{{tgt_build_release}}"
+        build_arch: "{{tgt_build_arch}}"
+        build_version: "{{default_branch_version_number_uscore}}"
 {%- if pphrase_flag %}
         gpg_passphrase: {{pphrase}}
 {%- endif %}
     - require:
-      - salt: copy_build_deps_repo_check_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}
 
 
-remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}:
+remove_current_symlink_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.function:
     - name: file.remove
     - tgt: {{minion_tgt}}
@@ -325,10 +332,10 @@ remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}:
     - onlyif:
         - ls {{nfs_server_branch_symlink}}
     - require:
-      - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}
 
 
-update_current_{{base_cfg.build_version}}_{{minion_platform}}:
+update_current_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.function:
     - name: file.symlink
     - tgt: {{minion_tgt}}
@@ -336,18 +343,18 @@ update_current_{{base_cfg.build_version}}_{{minion_platform}}:
       - {{nfs_server_archive_dir}}
       - {{nfs_server_branch_symlink}}
     - require:
-      - salt: remove_current_symlink_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: remove_current_symlink_{{default_branch_version_number_uscore}}_{{minion_platform}}
 
 
-copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}:
+copy_signed_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
     - queue: True
     - sls:
       - auto_setup.copy_build_product
     - require:
-      - salt: sign_packages_{{base_cfg.build_version}}_{{minion_platform}}
-      - salt: update_current_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}
+      - salt: update_current_{{default_branch_version_number_uscore}}_{{minion_platform}}
 
 
 cleanup_mount_nfs_{{minion_platform}}:
@@ -357,7 +364,7 @@ cleanup_mount_nfs_{{minion_platform}}:
     - sls:
       - auto_setup.setup_local_umount
     - require:
-      - salt: copy_signed_packages_{{base_cfg.build_version}}_{{minion_platform}}
+      - salt: copy_signed_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}
 
 
 ## allow for umount to complete (90sec - give 120 for safety)

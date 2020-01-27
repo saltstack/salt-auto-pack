@@ -1,5 +1,5 @@
 ## # build_dsig (designation) is YYYYMMDDhhmmnnnn
-## # branch_tag is either branch 2017.7 or tag v2017.7.1
+## # branch_tag is either branch master or tag v3005
 {% import "auto_setup/tag_build_dsig.jinja" as bd_cfg %}
 
 build_dsig: '{{bd_cfg.build_dsig }}'

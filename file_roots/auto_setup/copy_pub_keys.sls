@@ -56,7 +56,6 @@
 {% set platform_name = platform|lower %}
 {% set nb_srcdir = build_dest ~ '/' ~ build_py_ver ~ '/' ~ minion_platform ~ '/' ~ build_arch %}
 
-{% set build_branch = base_cfg.build_version_dotted %}
 
 mkdir_deps_packages:
   file.directory:
