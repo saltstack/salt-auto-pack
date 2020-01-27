@@ -61,7 +61,11 @@ retrieve_desired_salt:
   git.latest:
     - name: https://github.com/{{specific_user}}/salt.git
     - target: {{base_cfg.build_salt_dir}}
+{% if base_cfg.build_specific_tag %}
+    - rev: {{base_cfg.branch_tag}}
+{% else %}
     - rev: {{base_cfg.build_branch}}
+{% endif %}
     - user: {{base_cfg.build_runas}}
     - force_reset: True
     - force_clone: True
