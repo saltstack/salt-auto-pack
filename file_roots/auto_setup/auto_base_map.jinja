@@ -74,18 +74,14 @@
 
 {% else %}
 
-## pillar 'current_base_number' will later be pulled from what version master checkout and sdist produces
 {% set build_specific_tag = false %}                        ## branch master
 {% set build_branch = branch_checkout_tag %}                ## master or specific named branch
 {% set build_version = build_branch %}
-{% set build_nb_number = pillar.get('current_base_number', '2999') %}  ## default to 2999, won't interfere with Neon+
-{% set build_number_dotted = build_nb_number ~ '.0.0' %}    ## currently still aaaa.b.c version, TBD update before Neon ship
+{% set build_nb_number = '2999' %}                          ## default to 2999, won't interfere with Neon+
+{% set build_number_dotted = build_nb_number %}
 {% set build_number_uscore = build_number_dotted|replace(".", "_") %} ## 3005, possibly 3005_1, 30005_1rc1
 
 {% endif %}
-
-## Patch level, normally empty, currently '.0.0' until versioning sorted in Salt
-## {# {% set build_patch_number = '.0.0' %} #}
 
 
 ## Get the home and gpg keys directories to use, some tools assume ~/.gnupg
