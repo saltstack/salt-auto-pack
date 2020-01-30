@@ -4,7 +4,7 @@
 
 {% set default_user = 'saltstack' %}
 {% set specific_user = pillar.get('specific_name_user', default_user) %}
-{% set specific_user_salt_only = pillar.get('specific_name_user_salt_only', False) %}
+{% set specific_user_salt_only = pillar.get('specific_name_user_salt_only', false) %}
 {% set specific_pack_branch = pillar.get('specific_pack_branch', 'develop') %}
 {% set build_branch = base_cfg.build_branch %}
 
@@ -41,7 +41,7 @@ build_create_salt_pack_dir:
 
 retrieve_desired_salt_pack:
   git.latest:
-{% if specific_user_salt_only == True %}
+{% if specific_user_salt_only %}
     - name: https://github.com/{{default_user}}/{{salt_pack_version}}.git
 {% else %}
     - name: https://github.com/{{specific_user}}/{{salt_pack_version}}.git
