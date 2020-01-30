@@ -49,7 +49,7 @@
 {% set build_branch = 'master' %}                           ## using master branch
 {% set build_version = branch_tag|replace("v", "", 1) %}    ## 3005, possibly dotted 3005.1, 30005.1rc1
 {% set build_number_dotted = build_version %}               ## 3005, possibly dotted 3005.1, 30005.1rc1
-{% set build_number_uscore = build_version_dotted|replace(".", "_") %} ## 3005, possibly 3005_1, 30005_1rc1
+{% set build_number_uscore = build_number_dotted|replace(".", "_") %} ## 3005, possibly 3005_1, 30005_1rc1
 
 {% else %}
 
