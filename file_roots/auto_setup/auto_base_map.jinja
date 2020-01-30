@@ -38,32 +38,11 @@
 {% set curr_dev_tag = '0' %}
 
 ## generate branch build versions
-## {% if branch_tag|first == 'v' %}
-## {% set build_specific_tag = true %}                                                 ## specific version v2017.7.1
-## {% set build_version_full_dotted = branch_tag|replace("v", "", 1) %}                ## 2017.7.1
-## {% set build_version = build_version_full_dotted|replace(".", "_") %}               ## 2017_7_1
-## {% else %}
-## {% set build_specific_tag = false %}                                                ## branch 2017.7
-## {% set build_version_full_dotted = branch_tag ~ '.' ~ curr_dev_tag %}               ## 2017.7
-## {% set build_version = branch_tag|replace(".", "_") %}                              ## 2017_7
-## {% endif %}
-##
-## {% set build_version_full_uscore = build_version_full_dotted|replace(".", "_") %}   ## 2017_7_1
-## {% set build_version_list = build_version_full_dotted.split(".") %}                 ## generate list [ 2017, 7, 1 ]
-## {% set build_year = build_version_list[0] %}                                        ## 2017.7.1 -> 2017
-## {% set build_major_ver = build_version_list[1] %}                                   ## 2017.7.1 -> 7
-## {% set build_minor_ver = build_version_list[2] %}                                   ## 2017.7.1 -> 1
-##
-## ## produce dotted build version regardless of branch_tag
-## {% set build_version_dotted = build_version|replace("_", ".") %}    ## 2017.7 or 2017.7.1
-##
-## {% set branch_checkout_tag = pillar.get('code_named_branch_tag', branch_tag) %}
-
-{% set branch_checkout_tag = pillar.get('code_named_branch_tag', branch_tag) %}
-
 ## tags can be of the following formats
 ## v<number>[.<patch number>][rc1|a|b|alpha|beta]
 ## for example: v3001 v3002rc2 v3005.1 v3006.2rc1 v3006.3alpha v3020beta v3025.2a v3009b v3006.2b
+
+{% set branch_checkout_tag = pillar.get('code_named_branch_tag', branch_tag) %}
 
 {% if branch_tag|first == 'v' %}
 {% set build_specific_tag = true %}                         ## specific version v3005
@@ -74,18 +53,14 @@
 
 {% else %}
 
-## pillar 'current_base_number' will later be pulled from what version master checkout and sdist produces
 {% set build_specific_tag = false %}                        ## branch master
 {% set build_branch = branch_checkout_tag %}                ## master or specific named branch
 {% set build_version = build_branch %}
-{% set build_nb_number = pillar.get('current_base_number', '2999') %}  ## default to 2999, won't interfere with Neon+
-{% set build_number_dotted = build_nb_number ~ '.0.0' %}    ## currently still aaaa.b.c version, TBD update before Neon ship
+{% set build_nb_number = '2999' %}                          ## default to 2999, won't interfere with Neon+
+{% set build_number_dotted = build_nb_number ~ '.0.0' %}    ## set _version to aaaa.b.c
 {% set build_number_uscore = build_number_dotted|replace(".", "_") %} ## 3005, possibly 3005_1, 30005_1rc1
 
 {% endif %}
-
-## Patch level, normally empty, currently '.0.0' until versioning sorted in Salt
-## {# {% set build_patch_number = '.0.0' %} #}
 
 
 ## Get the home and gpg keys directories to use, some tools assume ~/.gnupg
