@@ -77,7 +77,7 @@
 {% if platform == 'debian' or platform == 'ubuntu' %}
 ## only need to perform this check for Debian or Ubuntu families
 
-{% set repo_version = base_cfg.build_year ~ '.' ~ base_cfg.build_major_ver %}
+{% set repo_version = 'latest' %}
 
 {% if build_py_ver == 'py3'and ((platform == 'redhat' and os_version == 8) or (platform == 'amazon' and os_version == 2) or (platform == 'debian' and os_version == 10)) %}
 {% set url_repo_latest_valid = true %}
