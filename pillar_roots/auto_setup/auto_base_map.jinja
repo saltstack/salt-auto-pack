@@ -8,10 +8,14 @@
 {% if branch_tag|first == 'v' %}
 {% set build_branch = 'master' %}                           ## using master branch
 {% set build_version = branch_tag|replace("v", "", 1) %}    ## 3005
-{% set build_number = build_version %}
-{% set build_dest_dir = build_dsig %}
+{% set build_number_dotted = build_version %}               ## 3005, possibly dotted 3005.1, 30005.1rc1
+{% set build_number_uscore = build_number_dotted|replace(".", "_") %} ## 3005, possibly 3005_1, 30005_1rc1
+{% set build_dest_dir = build_number_dotted %}
 {% else %}
 {% set build_version = branch_tag %}
-{% set build_number = '3000' %}                             ## default to 3000, dsig will add differentiator
-{% set build_dest_dir = build_number ~ build_dsig %}
+{% set build_nb_number = '2999' %}                          ## default to 2999, won't interfere with Neon+
+{% set build_number_dotted = build_nb_number ~ '.0.0' %}    ## set _version to aaaa.b.c
+{% set build_number_uscore = build_number_dotted|replace(".", "_") %} ## 3005, possibly 3005_1, 30005_1rc1
+{% set build_dest_dir = build_number_dotted ~ build_dsig %}
 {% endif %}
+
