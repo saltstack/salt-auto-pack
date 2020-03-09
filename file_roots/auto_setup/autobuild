@@ -381,7 +381,7 @@ do
         }
         salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
     else
-        salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
     fi
 
 done
