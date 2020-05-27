@@ -93,6 +93,9 @@ adjust_salt_pack_master_pillar_top_match:
             'G@osfullname:Raspbian and G@osmajorrelease:8 and G@os_family:Debian':
               - auto_setup.raspbian8
 
+            'G@osfullname:Ubuntu and G@osmajorrelease:20':
+              - auto_setup.ubuntu20
+
             'G@osfullname:Ubuntu and G@osmajorrelease:18':
               - auto_setup.ubuntu18
 
