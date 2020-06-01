@@ -305,6 +305,8 @@ salt ${CODE_MINION} state.sls auto_setup.setup_envir || {
 }
 
 # ensure reactor changes are read and give time for salt-minion to come back up
+systemctl restart salt-master
+sleep 10
 systemctl restart salt-minion
 sleep 10
 
@@ -349,6 +351,7 @@ _display "$SCRIPTNAME: autobuild via orchstration started for modified salt from
 ## running into issues with Ubuntu 18.04/20.04 and being called async when starting async, going to try leaving it to last and call directly
 ## node_list=$( salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort -r )       ## for ec2
 node_list=$(salt-cloud -l quiet -y -P -m /etc/salt/cloud.map -Q  --out=json | jq  '.[] | .[] | .[] | .name' | sort)       ## for ec2
+rm ~/mybuild-"${BRANCH_TAG}"-svc-builder-autotest-*.log || true
 
 for ndx in ${node_list}
 do
@@ -373,21 +376,21 @@ do
         /srv/salt/auto_setup/ubuntu1804_wrkaround.sh "${nx}" || {
             _error "$SCRIPTNAME:state for auto_setup failed to execute ubuntu1804_wrkaround.sh for '${BRANCH_TAG}', retcode '${$?}'";
         }
-        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}" 2>&1 | tee ~/mybuild-"${BRANCH_TAG}-${nx%-*}".log
     elif [[ $nx == svc-builder-autotest-u2004m* ]]; then
         salt ${CODE_MINION} state.sls auto_setup.ubuntu2004_wrkaround
         /srv/salt/auto_setup/ubuntu2004_wrkaround.sh "${nx}" || {
             _error "$SCRIPTNAME:state for auto_setup failed to execute ubuntu2004_wrkaround.sh for '${BRANCH_TAG}', retcode '${$?}'";
         }
-        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}" 2>&1 | tee ~/mybuild-"${BRANCH_TAG}-${nx%-*}".log
     elif [[ ( $nx == svc-builder-autotest-d9* ) || ( $nx == svc-builder-autotest-d10* ) ]]; then
         salt ${CODE_MINION} state.sls auto_setup.debian_wrkaround
         /srv/salt/auto_setup/debian_wrkaround.sh "${nx}" || {
             _error "$SCRIPTNAME:state for auto_setup failed to execute debian_wrkaround.sh for '${nx}' on '${BRANCH_TAG}', retcode '${$?}'";
         }
-        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}" 2>&1 | tee ~/mybuild-"${BRANCH_TAG}-${nx%-*}".log
     else
-        salt-run --async state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}"
+        salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}" 2>&1 > ~/mybuild-"${BRANCH_TAG}-${nx%-*}".log &
     fi
 
 done
