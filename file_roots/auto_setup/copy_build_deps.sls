@@ -69,18 +69,10 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-## {# {% set repo_url = 'http://repo.saltstack.com' %} #}
-{% set repo_url = 'http://repo-backend.saltstack.com' %}
+{% set repo_url = 'https://s3.repo.saltstack.com' %}
 {% set web_compatible_dir = platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 
 {% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ web_compatible_dir %}
-
-
-{% if build_py_ver == 'py3' and ((platform == 'redhat' and os_version == 8) or (platform == 'amazon' and os_version == 2) or (platform == 'debian' and os_version == 10)) %}
-{% set url_repo_latest_valid = true %}
-{% else %}
-{% set url_repo_latest_valid = false %}
-{% endif %}
 
 mkdir_deps_packages:
   file.directory:
@@ -95,18 +87,28 @@ mkdir_deps_packages:
         - group
         - mode
 
-
-{% if url_repo_latest_valid %}
+{%- if platform == 'redhat' and os_version == 8 %}
+install_s3_sync_tool:
+  pkg.installed:
+    - name: rclone
+{%- else %}
+install_s3_sync_tool:
+  pkg.installed:
+    - name: awscli
+{%- endif %}
 copy_repo_latest_deps:
   cmd.run:
     - name: |
-        wget --recursive --no-parent --no-check-certificate  --convert-links --reject index* --no-host-directories --cut-dirs=5  {{repo_url}}/{{web_compatible_dir}}/latest/
+{%- if platform == 'redhat' and os_version == 8 %}
+        RCLONE_CONFIG_S3_TYPE=s3 RCLONE_CONFIG_S3_PROVIDER=Other RCLONE_CONFIG_S3_ENV_AUTH=false RCLONE_CONFIG_S3_ENDPOINT={{repo_url}} rclone copy -c -v s3:s3/{{web_compatible_dir}}/latest/ ./
+{%- else %}
+        aws --no-sign-request --endpoint-url {{repo_url}} s3 sync --exact-timestamps s3://s3/{{web_compatible_dir}}/latest/ ./
+{%- endif %}
     - cwd: {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
     - use_vt: True
     - require:
       - file: mkdir_deps_packages
-{% endif %}
 
 copy_signed_deps:
   cmd.run:
