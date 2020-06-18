@@ -4,12 +4,12 @@
 
 build_ssh_rm:
   file.absent:
-    - name: '/srv/salt/auto_setup/ubuntu1804_wrkaround.sh'
+    - name: '/srv/salt/auto_setup/ubuntu2004_wrkaround.sh'
 
 
 write_script:
   file.managed:
-    - name: '/srv/salt/auto_setup/ubuntu1804_wrkaround.sh'
+    - name: '/srv/salt/auto_setup/ubuntu2004_wrkaround.sh'
     - makedirs: True
     - dir_mode: 0755
     - mode: 0775

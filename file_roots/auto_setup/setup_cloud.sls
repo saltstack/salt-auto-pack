@@ -82,7 +82,7 @@ create_dflt_profiles:
         svc-builder-cent7{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0bf2c7f0df2c22ce0
-          size: t2.medium
+          size: c4.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -105,7 +105,7 @@ create_dflt_profiles:
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f73b3e4b0b0a67ac
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -121,10 +121,29 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: stable 2019.2.3
+        svc-builder-u2004{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-0768217aaa176b39b
+          size: c5.xlarge
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: -x python3 git master
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0d5f916f52836397d
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -143,7 +162,7 @@ create_dflt_profiles:
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f7157f751a882a04
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -164,7 +183,7 @@ create_dflt_profiles:
         svc-builder-cent8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-02b343d2e3ea1980c
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -185,7 +204,7 @@ create_dflt_profiles:
         svc-builder-debian10{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-00f16554cf4d1b65b
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -206,7 +225,7 @@ create_dflt_profiles:
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0033222265d04439f
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -227,7 +246,7 @@ create_dflt_profiles:
         svc-builder-amzn1{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-06878170589c3321a
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -246,7 +265,7 @@ create_dflt_profiles:
         svc-builder-debian8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0853e07df32d2cd50
-          size: t2.medium
+          size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -279,6 +298,8 @@ create_dflt_map:
           - svc-builder-autotest-c7m{{unique_postfix}}
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
+        svc-builder-u2004{{unique_postfix}}:
+          - svc-builder-autotest-u2004m{{unique_postfix}}
         svc-builder-u1804{{unique_postfix}}:
           - svc-builder-autotest-u1804m{{unique_postfix}}
         svc-builder-u1604{{unique_postfix}}:
