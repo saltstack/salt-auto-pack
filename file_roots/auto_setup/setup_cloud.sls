@@ -98,9 +98,9 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
 {%- if build_py3 %}
-          script_args: -x python3 stable 3000.3
+          script_args: -x python3 stable
 {%- else %}
-          script_args: stable 3000.3
+          script_args: stable
 {%- endif %}
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -120,7 +120,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 3000.3
+          script_args: -x python3 stable
         svc-builder-u2004{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0adf3a90b056c3b35
@@ -139,7 +139,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3001
+          script_args: -x python3 stable
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0d5f916f52836397d
@@ -158,7 +158,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 3000.3
+          script_args: -x python3 stable
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f7157f751a882a04
@@ -177,7 +177,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 3000.3
+          script_args: -x python3 stable
 {%- if build_py3 %}
 {%- if rhel8_available %}
         svc-builder-cent8{{unique_postfix}}:
@@ -198,7 +198,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3000.3
+          script_args: -x python3 stable
 {%- endif %}
 {%- if debian10_available %}
         svc-builder-debian10{{unique_postfix}}:
@@ -219,7 +219,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3000.3
+          script_args: -x python3 stable
 {%- endif %}
 {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
@@ -240,7 +240,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3000.3
+          script_args: -x python3 stable
 {%- endif %}
 {% else %}
         svc-builder-amzn1{{unique_postfix}}:
@@ -261,7 +261,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 2016.11
+          script_args: stable
         svc-builder-debian8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0853e07df32d2cd50
@@ -280,7 +280,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 3000.3
+          script_args: stable
 {%- endif %}
 
 
