@@ -6,6 +6,7 @@
 
 {% set specific_user = pillar.get('specific_name_user', 'saltstack') %}
 {% set build_local_minion = grains.get('id') %}
+{% set build_py3 = pillar.get('build_py3', False) %}
 
 
 {% if base_cfg.build_specific_tag == false %}
@@ -127,7 +128,11 @@ ensure_permissions_{{cloud_file.replace('.', '_')}}:
 
 build_salt_sdist:
   cmd.run:
+    {%- if build_py3 %}
+    - name: /usr/bin/python3 setup.py sdist
+    {%- else %}
     - name: /usr/bin/python setup.py sdist
+    {%- endif %}
     - runas: {{base_cfg.build_runas}}
     - cwd: {{base_cfg.build_salt_dir}}
     - reset_system_locale: False
