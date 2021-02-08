@@ -18,7 +18,7 @@
 ## do this copy explicit file due to having jinja issues - revisit TBD
 
 {% set tag_build_dsig_sls_file = '/srv/pillar/auto_setup/tag_build_dsig.sls' %}
-{% set finger_test = salt.cmd.run("gpg --with-fingerprint " ~ my_gpg_tmpfile, use_vt=True)|truncate(20, True, '')|trim %}
+{% set finger_test = salt.cmd.run("gpg --with-fingerprint " ~ my_gpg_tmpfile, use_vt=False)|truncate(20, True, '')|trim %}
 {% set keysize, keyid = finger_test.split('/', 1) -%}
 
 update_tag_build_dsig_with_keyid:
