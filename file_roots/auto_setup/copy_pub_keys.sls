@@ -82,5 +82,17 @@ ensure_saltstack_gpg_pub_key:
     - makedirs: True
     - preserve: True
 
+{%- if grains.get('os_family') == 'Debian' %}
+ensure_saltstack_gpg_pub_keyring:
+  file.managed:
+    - name: {{nb_srcdir}}/salt-archive-keyring.gpg
+    - source: salt://{{slspath}}/salt-archive-keyring.gpg
+    - user: {{base_cfg.build_runas}}
+    - group: {{base_cfg.build_runas}}
+    - mode: 644
+    - force: True
+    - makedirs: True
+    - preserve: True
+{%- endif %}
 
 
