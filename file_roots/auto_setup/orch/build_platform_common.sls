@@ -247,7 +247,7 @@ ensure_dest_dir_exists_{{minion_platform}}:
       - salt: mount_nfs_{{minion_platform}}
 
 
-{% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
+{% if base_cfg.build_clean == 0 %}
 copy_deps_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
@@ -294,6 +294,8 @@ build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}:
         build_version: "{{default_branch_version_number_uscore}}"
 
 
+# the rhel8 is because we manually sign it since the salt state for signing repos on rhel8 is currently broken
+{%- if my_tgt_os_family == 'debian' or minion_platform == 'rhel8' %}
 copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
     - tgt: {{minion_tgt}}
@@ -302,6 +304,7 @@ copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_pla
       - auto_setup.copy_build_deps_check_repo
     - require:
       - salt: build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}
+{%- endif %}
 
 
 sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
@@ -317,9 +320,21 @@ sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
 {%- if pphrase_flag %}
         gpg_passphrase: {{pphrase}}
 {%- endif %}
+{%- if my_tgt_os_family == 'debian' %}
     - require:
       - salt: copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}
+{%- endif %}
 
+{%- if my_tgt_os_family != 'debian' %}
+copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}_round2:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.copy_build_deps_check_repo
+    - require:
+      - salt: build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}
+{%- endif %}
 
 remove_current_symlink_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.function:

@@ -74,10 +74,12 @@
 
 {% set copy_repo_check_script_file = base_cfg.build_homedir ~ '/copy_deps_repo_check.sh' %}
 
-{% if platform == 'debian' or platform == 'ubuntu' %}
-## only need to perform this check for Debian or Ubuntu families
-
-{% set repo_version = 'latest' %}
+{%- set split_build_number_dotted = base_cfg.build_number_dotted.split('.') %}
+{%- if split_build_number_dotted|length == 2 and split_build_number_dotted[0]|length == 4 and split_build_number_dotted[0].startswith('3') and split_build_number_dotted[1] != '0' %}
+{%- set repo_version = split_build_number_dotted[0] %}
+{%- else %}
+{%- set repo_version = 'latest' %}
+{%- endif %}
 
 cleanup_deps_tmpdir:
   file.absent:
@@ -122,8 +124,10 @@ copy_repo_latest_deps:
 remove_salt_tmp_dirs_packages:
   cmd.run:
     - name: |
-        rm -fR {{base_cfg.build_salt_tmp_dir}}/conf {{base_cfg.build_salt_tmp_dir}}/db {{base_cfg.build_salt_tmp_dir}}/dists {{base_cfg.build_salt_tmp_dir}}/pool
+        rm -fR {{base_cfg.build_salt_tmp_dir}}/conf {{base_cfg.build_salt_tmp_dir}}/db {{base_cfg.build_salt_tmp_dir}}/dists {{base_cfg.build_salt_tmp_dir}}/pool {{base_cfg.build_salt_tmp_dir}}/repodata
 
+
+{% if platform == 'debian' or platform == 'ubuntu' %}
 
 ## now we have a copy of the latest on repo.saltstack.com
 ## we need to compare to see if same in tmp dir as just built, need to give pref.
@@ -195,18 +199,35 @@ execute_copy_script:
     - require:
       - file: generate_copy_script
 
+{%- else %}
+
+remove_repodata:
+  cmd.run:
+    - name: rm -rfv {{nb_srcdir}}/repodata
+
+install_rsync:
+  pkg.installed:
+    - name: rsync
+    - require:
+      - cmd: remove_repodata
+
+execute_copy_script:
+  cmd.run:
+    - name: rsync -avc --existing {{base_cfg.build_salt_tmp_dir}}/ {{nb_srcdir}}/
+    - require:
+      - pkg: install_rsync
+
+re-create_repodata:
+  cmd.run:
+    - name: createrepo .
+    - cwd: {{nb_srcdir}}/
+    - require:
+      - cmd: execute_copy_script
+
+{%- endif %}
 
 copy_repo_deps_done:
  cmd.run:
     - name: echo "copied to {{nb_srcdir}} those repo products that are unchanged"
     - require:
       - cmd: execute_copy_script
-
-{% else %}
-
-copy_repo_deps_done:
- cmd.run:
-    - name: echo "non Debian or Ubuntu platform those repo products that are unused"
-
-{% endif %}
-

@@ -96,13 +96,21 @@ install_s3_sync_tool:
   pkg.installed:
     - name: awscli
 {%- endif %}
-copy_repo_latest_deps:
+
+{%- set split_build_number_dotted = base_cfg.build_number_dotted.split('.') %}
+{%- if split_build_number_dotted|length == 2 and split_build_number_dotted[0]|length == 4 and split_build_number_dotted[0].startswith('3') and split_build_number_dotted[1] != '0' %}
+{%- set repo_version = split_build_number_dotted[0] %}
+{%- else %}
+{%- set repo_version = 'latest' %}
+{%- endif %}
+
+copy_repo_{{ repo_version }}_deps:
   cmd.run:
     - name: |
 {%- if platform == 'redhat' and os_version == 8 %}
-        RCLONE_CONFIG_S3_TYPE=s3 RCLONE_CONFIG_S3_PROVIDER=Other RCLONE_CONFIG_S3_ENV_AUTH=false RCLONE_CONFIG_S3_ENDPOINT={{repo_url}} rclone copy -c -v s3:s3/{{web_compatible_dir}}/latest/ ./
+        RCLONE_CONFIG_S3_TYPE=s3 RCLONE_CONFIG_S3_PROVIDER=Other RCLONE_CONFIG_S3_ENV_AUTH=false RCLONE_CONFIG_S3_ENDPOINT={{repo_url}} rclone copy -c -v s3:s3/{{web_compatible_dir}}/{{ repo_version }}/ ./
 {%- else %}
-        aws --no-sign-request --endpoint-url {{repo_url}} s3 sync --exact-timestamps s3://s3/{{web_compatible_dir}}/latest/ ./
+        aws --no-sign-request --endpoint-url {{repo_url}} s3 sync --exact-timestamps s3://s3/{{web_compatible_dir}}/{{ repo_version }}/ ./
 {%- endif %}
     - cwd: {{nb_srcdir}}/
     - runas: {{base_cfg.build_runas}}
