@@ -200,8 +200,6 @@ copy_redhat_7_base_subdir:
       - {{nb_srcdir}}
     - kwarg:
         makedirs: True
-    - require:
-      - salt: build_init_{{minion_platform}}
 {% endif %}
 
 
@@ -249,16 +247,6 @@ ensure_dest_dir_exists_{{minion_platform}}:
       - salt: mount_nfs_{{minion_platform}}
 
 
-copy_pub_keys_for_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
-  salt.state:
-    - tgt: {{minion_tgt}}
-    - queue: True
-    - sls:
-      - auto_setup.copy_pub_keys
-    - require:
-      - salt: ensure_dest_dir_exists_{{minion_platform}}
-
-
 {% if base_cfg.build_clean == 0 and my_tgt_link and my_tgt_link_has_files %}
 copy_deps_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
   salt.state:
@@ -283,6 +271,16 @@ cleanup_any_build_products_{{default_branch_version_number_uscore}}_{{minion_pla
 {% else %}
       - salt: ensure_dest_dir_exists_{{minion_platform}}
 {% endif %}
+
+
+copy_pub_keys_for_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}:
+  salt.state:
+    - tgt: {{minion_tgt}}
+    - queue: True
+    - sls:
+      - auto_setup.copy_pub_keys
+    - require:
+      - salt: ensure_dest_dir_exists_{{minion_platform}}
 
 
 build_highstate_{{default_branch_version_number_uscore}}_{{minion_platform}}:
