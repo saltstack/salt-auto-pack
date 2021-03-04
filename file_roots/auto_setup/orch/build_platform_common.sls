@@ -346,6 +346,9 @@ remove_current_symlink_{{default_branch_version_number_uscore}}_{{minion_platfor
         - ls {{nfs_server_branch_symlink}}
     - require:
       - salt: sign_packages_{{default_branch_version_number_uscore}}_{{minion_platform}}
+{%- if my_tgt_os_family != 'debian' %}
+      - salt: copy_build_deps_repo_check_{{default_branch_version_number_uscore}}_{{minion_platform}}_round2
+{%- endif %}
 
 
 update_current_{{default_branch_version_number_uscore}}_{{minion_platform}}:
