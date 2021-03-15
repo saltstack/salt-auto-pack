@@ -374,6 +374,9 @@ do
     if [[ $nx == svc-builder-autotest-u1804m* ]]; then
         salt ${nx} state.sls auto_setup.ubuntu_wrkaround
     fi
+    if [[ $nx == svc-builder-autotest-d9m* ]]; then
+        salt ${nx} state.sls auto_setup.debian_wrkaround
+    fi
     salt-run state.orchestrate auto_setup.orch.build_platform_common pillar="{'minion_tgt':"${nx}"}" 2>&1 > ~/mybuild-"${BRANCH_TAG}-${nx%-*}".log &
 
 done

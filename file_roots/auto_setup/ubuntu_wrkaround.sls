@@ -1,6 +1,5 @@
 tmux:
   pkg.installed
 
-tmux new-session -d /bin/bash:
-  cmd.run:
-  - runas: ubuntu
+su - ubuntu -c 'LANG=en_US.UTF-8 tmux new-session -d /bin/bash':
+  cmd.run
