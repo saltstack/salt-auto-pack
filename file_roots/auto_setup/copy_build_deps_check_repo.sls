@@ -179,7 +179,7 @@ generate_copy_script:
                     repo_sum=$(sha256sum $repo_dir/$idx | cut -d ' ' -f 1)
                     built_sum=$(sha256sum $built_dir/$bdx | cut -d ' ' -f 1)
                     if [ "$repo_sum" = "$built_sum" ]; then
-                        item=$(echo $idx | cut -d '_' -f 1)
+                        item=$(echo $idx | cut -d '_' -f 1|sed -e 's/python-//' -e 's/-python//')
                         copy_list=$(find $repo_dir -name "*$item*")
                         for cpx in $copy_list
                         do
