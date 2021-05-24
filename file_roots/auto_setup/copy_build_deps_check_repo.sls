@@ -67,7 +67,7 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set repo_url = 'https://s3.repo.saltstack.com' %}
+{% set repo_url = 'https://s3.repo.saltproject.io' %}
 {% set web_compatible_dir = platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 
 {% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ web_compatible_dir %}
@@ -129,7 +129,7 @@ remove_salt_tmp_dirs_packages:
 
 {% if platform == 'debian' or platform == 'ubuntu' %}
 
-## now we have a copy of the latest on repo.saltstack.com
+## now we have a copy of the latest on repo.saltproject.io
 ## we need to compare to see if same in tmp dir as just built, need to give pref.
 ## to version from tmp dir, but cannot do straight name replace since abc.orig.tar.gz will
 ## match new abc.orig.tar.gz, hence need to check debian.tar.[gz|xz] versions first and then if no difference

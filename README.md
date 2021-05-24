@@ -20,7 +20,7 @@ Currently auto-pack is driven by a shell script, autobuild, located in file_root
 
 # Overview
 
-Auto-pack can check out a specific version of Salt, a specific version of salt-pack, build Salt and the dependencies using salt-pack on a desired operating system utilising a specified cloud.map, create the repository containing that repository and then deliver the built product to a specified results NFS server, laying out the repository and built product in a manner similar to repo.saltstack.com.
+Auto-pack can check out a specific version of Salt, a specific version of salt-pack, build Salt and the dependencies using salt-pack on a desired operating system utilising a specified cloud.map, create the repository containing that repository and then deliver the built product to a specified results NFS server, laying out the repository and built product in a manner similar to repo.saltproject.io.
 
 This allows a user to build their own version of Salt and its dependencies, creating a repository using their own keys and deliver the results to a NFS server of their own choosing.  This allows for a user to create new features or bug fixs for Salt with it's own versions of dependencies, create a repository and deliver them to a NFS server from which the build products can be installed and tested (web server utilizing NFS mounts).
 

@@ -69,7 +69,7 @@
 {% set platform_pkg = 'py3' %}
 {% endif %}
 
-{% set repo_url = 'https://s3.repo.saltstack.com' %}
+{% set repo_url = 'https://s3.repo.saltproject.io' %}
 {% set web_compatible_dir = platform_pkg ~ '/' ~ platform_name ~ '/' ~ os_version ~ '/' ~ build_arch %}
 
 {% set nfs_server_base_dir = base_cfg.minion_mount_nfsbasedir ~ '/' ~ specific_user ~ '/' ~ web_compatible_dir %}
