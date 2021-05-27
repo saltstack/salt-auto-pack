@@ -134,7 +134,7 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog:
     - after: "%changelog"
     - content: |
         * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
-        - Update to feature release {{changelog_text}} {{changelog_text_py_ver}}
+        - Update to feature release {{changelog_text}}{{changelog_text_py_ver}}
  
         remove_this_line_after_insertion
     - show_changes: True

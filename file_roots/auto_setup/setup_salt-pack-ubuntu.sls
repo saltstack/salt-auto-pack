@@ -148,7 +148,7 @@ update_branch_curr_salt_pack_version_{{platform_release}}_changelog:
 {%- else %}
         salt ({{default_branch_version_number_dotted}}{{base_cfg.build_dsig}}+ds-0) stable; urgency=medium
 
-          * Build of Salt {{default_branch_version_number_dotted}}{{base_cfg.build_dsig}} {{changelog_text_py_ver}}
+          * Build of Salt {{default_branch_version_number_dotted}}{{base_cfg.build_dsig}}{{changelog_text_py_ver}}
 
          -- Salt Stack Packaging <packaging@{{specific_user}}.com>  {{apt_date}}
 {%- endif %}
