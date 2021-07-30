@@ -38,7 +38,7 @@
 build_pkgs:
   pkg.installed:
    - pkgs:
-     - git
+     - git224
 
 
 {{base_cfg.build_runas}}:
@@ -157,9 +157,9 @@ use_pypi_dist:
         cp {{base_cfg.build_salt_pypi_dir}}/salt-{{base_cfg.build_version}}.tar.gz  {{base_cfg.build_salt_dir}}/dist/
 
 
-cleanup_pypi_dist:
-  file.absent:
-    - name: {{base_cfg.build_salt_pypi_dir}}
+#cleanup_pypi_dist:
+#  file.absent:
+#    - name: {{base_cfg.build_salt_pypi_dir}}
 
 {% endif %}
 

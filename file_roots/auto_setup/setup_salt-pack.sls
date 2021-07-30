@@ -19,7 +19,7 @@
 build_pack_pkgs:
   pkg.installed:
    - pkgs:
-     - git
+     - git224
 
 
 build_pack_user:

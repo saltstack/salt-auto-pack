@@ -9,14 +9,14 @@ clean_salt_code_dir:
     - name: {{base_cfg.build_salt_dir}}
 
 
-clean_salt_code_pypi_dir:
-  file.absent:
-      - name: {{base_cfg.build_salt_pypi_dir}}
+#clean_salt_code_pypi_dir:
+#  file.absent:
+#      - name: {{base_cfg.build_salt_pypi_dir}}
 
 
-clean_salt_pack_dir:
-  file.absent:
-    - name: {{base_cfg.build_salt_pack_dir}}
+#clean_salt_pack_dir:
+#  file.absent:
+#    - name: {{base_cfg.build_salt_pack_dir}}
 
 
 clean_salt_reactor_conf:
