@@ -133,7 +133,7 @@ adjust_branch_curr_salt_pack_{{platform_release}}_spec_release_changelog:
     - mode: insert
     - after: "%changelog"
     - content: |
-        * {{rpm_date}} SaltStack Packaging Team <packaging@{{specific_user}}.com> - {{changelog_text}}
+        * {{rpm_date}} Salt Project Packaging <saltproject-packaging@vmware.com> - {{changelog_text}}
         - Update to feature release {{changelog_text}}
 
         remove_this_line_after_insertion
