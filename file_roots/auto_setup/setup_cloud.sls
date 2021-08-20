@@ -222,8 +222,8 @@ create_dflt_profiles:
 {%- if debian10_available %}
         svc-builder-debian10{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-00f16554cf4d1b65b
-          size: c4.xlarge
+          image: ami-07aa4b8d0915e6f17
+          size: c5a.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
           network_interfaces:
@@ -325,8 +325,10 @@ create_dflt_map:
 {%- endif %}
         svc-builder-u1804{{unique_postfix}}:
           - svc-builder-autotest-u1804m{{unique_postfix}}
+{%- if "3001" in base_cfg.build_version or "3002" in base_cfg.build_version %}
         svc-builder-u1604{{unique_postfix}}:
           - svc-builder-autotest-u1604m{{unique_postfix}}
+{%- endif %}
 {%- if build_py3 %}
 {%- if debian10_available %}
         svc-builder-debian10{{unique_postfix}}:
