@@ -67,6 +67,7 @@ create_dflt_providers:
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           keyname: {{base_cfg.aws_access_pub_key_name}}
           driver: ec2
+          ec2_api_version: 2016-11-15
 
 
 remove_curr_profiles:
