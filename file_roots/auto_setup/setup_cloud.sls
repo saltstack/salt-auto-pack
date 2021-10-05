@@ -13,11 +13,9 @@
 
 ## disable for now since hand build till 2019.2.1 release
 {%- if build_py3 %}
-{% set debian10_available = true %}
 {% set rhel8_available = true %}
 {% set amzn2_available = true %}
 {%- else %}
-{% set debian10_available = false %}
 {% set rhel8_available = false %}
 {% set amzn2_available = false %}
 {%- endif %}
@@ -199,7 +197,7 @@ create_dflt_profiles:
           sync_after_install: grains
           script_args: -x python3 stable
 {%- if build_py3 %}
-{%- if rhel8_available %}
+  {%- if rhel8_available %}
         svc-builder-cent8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-02b343d2e3ea1980c
@@ -219,8 +217,7 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: -x python3 stable
-{%- endif %}
-{%- if debian10_available %}
+  {%- endif %}
         svc-builder-debian10{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-07aa4b8d0915e6f17
@@ -240,8 +237,45 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: -x python3 stable
-{%- endif %}
-{%- if amzn2_available %}
+        svc-builder-debian11{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-08369ae26c6acf944
+          size: c5a.xlarge
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: stable
+        svc-builder-debian11arm64{{unique_postfix}}:
+          provider: production-ec2-us-west-2-private-ips
+          image: ami-090d375556899a4cb
+          size: c6g.xlarge
+          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
+          ssh_interface: private_ips
+          network_interfaces:
+            - DeviceIndex: 0
+              PrivateIpAddresses:
+                - Primary: True
+              AssociatePublicIpAddress: True
+              SubnetId: {{base_cfg.subnet_id}}
+              SecurityGroupId:
+                - {{base_cfg.sec_group_id}}
+          del_root_vol_on_destroy: True
+          del_all_vol_on_destroy: True
+          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
+          sync_after_install: grains
+          script_args: stable
+  {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0033222265d04439f
@@ -261,46 +295,7 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
           script_args: -x python3 stable
-{%- endif %}
-{% else %}
-        svc-builder-amzn1{{unique_postfix}}:
-          provider: production-ec2-us-west-2-private-ips
-          image: ami-06878170589c3321a
-          size: c5.xlarge
-          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
-          ssh_interface: private_ips
-          network_interfaces:
-            - DeviceIndex: 0
-              PrivateIpAddresses:
-                - Primary: True
-              AssociatePublicIpAddress: True
-              SubnetId: {{base_cfg.subnet_id}}
-              SecurityGroupId:
-                - {{base_cfg.sec_group_id}}
-          del_root_vol_on_destroy: True
-          del_all_vol_on_destroy: True
-          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
-          sync_after_install: grains
-          script_args: stable
-        svc-builder-debian8{{unique_postfix}}:
-          provider: production-ec2-us-west-2-private-ips
-          image: ami-0853e07df32d2cd50
-          size: c5.xlarge
-          private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
-          ssh_interface: private_ips
-          network_interfaces:
-            - DeviceIndex: 0
-              PrivateIpAddresses:
-                - Primary: True
-              AssociatePublicIpAddress: True
-              SubnetId: {{base_cfg.subnet_id}}
-              SecurityGroupId:
-                - {{base_cfg.sec_group_id}}
-          del_root_vol_on_destroy: True
-          del_all_vol_on_destroy: True
-          tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
-          sync_after_install: grains
-          script_args: stable
+  {%- endif %}
 {%- endif %}
 
 
@@ -323,6 +318,10 @@ create_dflt_map:
 {%- if not "3001" in base_cfg.build_version and not "3002" in base_cfg.build_version and not "3003" in base_cfg.build_version %}
         svc-builder-u2004arm64{{unique_postfix}}:
           - svc-builder-autotest-u2004arm64m{{unique_postfix}}
+        svc-builder-debian11{{unique_postfix}}:
+          - svc-builder-autotest-d11m{{unique_postfix}}
+        svc-builder-debian11arm64{{unique_postfix}}:
+          - svc-builder-autotest-d11arm64m{{unique_postfix}}
 {%- endif %}
         svc-builder-u1804{{unique_postfix}}:
           - svc-builder-autotest-u1804m{{unique_postfix}}
@@ -331,10 +330,8 @@ create_dflt_map:
           - svc-builder-autotest-u1604m{{unique_postfix}}
 {%- endif %}
 {%- if build_py3 %}
-{%- if debian10_available %}
         svc-builder-debian10{{unique_postfix}}:
           - svc-builder-autotest-d10m{{unique_postfix}}
-{%- endif %}
 {%- if rhel8_available %}
         svc-builder-cent8{{unique_postfix}}:
           - svc-builder-autotest-c8m{{unique_postfix}}

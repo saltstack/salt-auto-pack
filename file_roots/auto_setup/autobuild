@@ -79,7 +79,7 @@ _usage() {
     echo "  dated by current start time of execution in YYYYMMDDhhmmnnnn format"
     echo "  current platforms:"
     echo "      Redhat 8 and 7"
-    echo "      Debian 10, 9 and 8"
+    echo "      Debian 11, 10, 9 and 8"
     echo "      Raspbian 9 and 8"
     echo "      Ubuntu 20.04, 18.04 and 16.04"
     echo ""
