@@ -106,4 +106,11 @@ This will result in a dated packaged build of Salt and its dependencies, here fo
 |   y   | nfs_host      | using user's NFS server hostname for repository for build products                                                        |
 |   z   | nfs_absdir    |absolute NFS directory on NFS server for mounting root NFS directory, for example: /volume3                                |
 
+Note: Auto-pack makes use the 'new style' module.run, that is, the salt-minion config file for the salt-minion on the build machine
+      and all build VM's need to have the following setting:
+
+      use_superseded:
+        - module.run
+
+    The build VM's have this setting automatically added to them.
 

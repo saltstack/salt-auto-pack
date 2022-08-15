@@ -90,12 +90,12 @@ build_write_version_override:
 
 build_write_version_override_rights:
   module.run:
-    - name: file.chown
-    - path: {{uder_version_file}}
-    - user: {{base_cfg.build_runas}}
-    - group: {{base_cfg.build_runas}}
-    - require:
-      - file: build_write_version_override
+    - file.chown:
+      - path: {{uder_version_file}}
+      - user: {{base_cfg.build_runas}}
+      - group: {{base_cfg.build_runas}}
+      - require:
+        - file: build_write_version_override
 
 {% endif %}
 
