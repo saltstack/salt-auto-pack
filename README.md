@@ -30,15 +30,15 @@ Auto-pack is driven from the salt-master and assumes that a salt-minion is curre
 
 Currently supported Operating Systems
 
-| Operating System(OS) | Description       |
-|----------------------|-------------------|
-| rhel7                | Redhat 7          |
-| rhel6                | Redhat 6          |
-| amazon               | Amazon Linux AMI  |
-| debian9              | Debian 9 (stretch)|
-| debian8              | Debian 8 (jessie) |
-| ubuntu1604           | Ubuntu 16.04 LTS  |
-| ubuntu1404           | Ubuntu 14.04 LTS  |
+| Operating System(OS) | Description          |
+|----------------------|----------------------|
+| rhel7                | Redhat 7             |
+| rhel8                | Redhat 8             |
+| amazon               | Amazon 2 Linux AMI   |
+| debian9              | Debian 10 (buster)   |
+| debian8              | Debian 11 (bullseye) |
+| ubuntu1804           | Ubuntu 18.04 LTS     |
+| ubuntu2004           | Ubuntu 20.04 LTS     |
 
 
 # Script

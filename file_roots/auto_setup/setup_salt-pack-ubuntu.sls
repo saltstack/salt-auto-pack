@@ -11,7 +11,7 @@
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
 {% set changelog_text_py_ver = ' for Python 3' %}
-{% set ubuntu_supported = ['ubuntu2004', 'ubuntu1804', 'ubuntu1604'] %}
+{% set ubuntu_supported = ['ubuntu2004', 'ubuntu1804'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}

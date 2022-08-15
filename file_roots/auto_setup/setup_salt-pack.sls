@@ -97,6 +97,7 @@ copy_working_branch_to_tagged_pillar_directory:
     - file_mode: 644
     - user: {{base_cfg.build_runas}}
     - makedirs: True
+    - force: True
 
 
 ensure_file_versions_directory:

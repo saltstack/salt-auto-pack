@@ -104,6 +104,12 @@ install_s3_sync_tool:
 {%- set repo_version = 'latest' %}
 {%- endif %}
 
+ensure_dest_dir:
+  cmd.run:
+    - name: |
+        mkdir -p {{nfs_server_base_dir}}/{{build_branch}}
+    - runas: {{base_cfg.build_runas}}
+
 copy_repo_{{ repo_version }}_deps:
   cmd.run:
     - name: |
