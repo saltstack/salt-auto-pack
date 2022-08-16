@@ -30,15 +30,15 @@ Auto-pack is driven from the salt-master and assumes that a salt-minion is curre
 
 Currently supported Operating Systems
 
-| Operating System(OS) | Description       |
-|----------------------|-------------------|
-| rhel7                | Redhat 7          |
-| rhel6                | Redhat 6          |
-| amazon               | Amazon Linux AMI  |
-| debian9              | Debian 9 (stretch)|
-| debian8              | Debian 8 (jessie) |
-| ubuntu1604           | Ubuntu 16.04 LTS  |
-| ubuntu1404           | Ubuntu 14.04 LTS  |
+| Operating System(OS) | Description          |
+|----------------------|----------------------|
+| rhel7                | Redhat 7             |
+| rhel8                | Redhat 8             |
+| amazon               | Amazon 2 Linux AMI   |
+| debian9              | Debian 10 (buster)   |
+| debian8              | Debian 11 (bullseye) |
+| ubuntu1804           | Ubuntu 18.04 LTS     |
+| ubuntu2004           | Ubuntu 20.04 LTS     |
 
 
 # Script
@@ -106,4 +106,11 @@ This will result in a dated packaged build of Salt and its dependencies, here fo
 |   y   | nfs_host      | using user's NFS server hostname for repository for build products                                                        |
 |   z   | nfs_absdir    |absolute NFS directory on NFS server for mounting root NFS directory, for example: /volume3                                |
 
+Note: Auto-pack makes use the 'new style' module.run, that is, the salt-minion config file for the salt-minion on the build machine
+      and all build VM's need to have the following setting:
+
+      use_superseded:
+        - module.run
+
+    The build VM's have this setting automatically added to them.
 

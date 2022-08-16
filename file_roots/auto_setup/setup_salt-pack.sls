@@ -39,12 +39,15 @@ build_create_salt_pack_dir:
     - file_mode: 644
 
 
+cp -f /root/.ssh/{{salt_pack_version}} /root/.ssh/id_rsa:
+  cmd.run
+
 retrieve_desired_salt_pack:
   git.latest:
 {% if specific_user_salt_only %}
-    - name: https://github.com/{{default_user}}/{{salt_pack_version}}.git
+    - name: git@github.com:{{default_user}}/{{salt_pack_version}}.git
 {% else %}
-    - name: https://github.com/{{specific_user}}/{{salt_pack_version}}.git
+    - name: git@github.com:{{specific_user}}/{{salt_pack_version}}.git
 {% endif %}
     - rev: {{specific_pack_branch}}
     - target: {{base_cfg.build_salt_pack_dir}}
@@ -52,6 +55,8 @@ retrieve_desired_salt_pack:
     - force_clone: True
     - force_reset: True
 
+cp -f /root/.ssh/salt-priv /root/.ssh/id_rsa:
+  cmd.run
 
 build_clean_pkgbuild_file:
   file.absent:
@@ -77,16 +82,16 @@ write_build_pkgbuild_file:
 ## ensure tagged directory exists and is updated
 ensure_pillar_versions_directory:
   file.directory:
-    - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_number_uscore}}
-    - dir_mode: 755
-    - file_mode: 644
-    - makedirs: True
-    - user: {{base_cfg.build_runas}}
-    - group: {{base_cfg.build_runas}}
-    - recurse:
-        - user
-        - group
-        - mode
+  - name: {{base_cfg.build_salt_pack_dir}}/pillar_roots/versions/{{base_cfg.build_number_uscore}}
+  - dir_mode: 755
+  - file_mode: 644
+  - makedirs: True
+  - user: {{base_cfg.build_runas}}
+  - group: {{base_cfg.build_runas}}
+  - recurse:
+      - user
+      - group
+      - mode
 
 
 copy_working_branch_to_tagged_pillar_directory:
@@ -97,6 +102,7 @@ copy_working_branch_to_tagged_pillar_directory:
     - file_mode: 644
     - user: {{base_cfg.build_runas}}
     - makedirs: True
+    - force: True
 
 
 ensure_file_versions_directory:

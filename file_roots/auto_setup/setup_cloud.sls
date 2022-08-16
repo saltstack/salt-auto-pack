@@ -15,6 +15,8 @@
 {%- if build_py3 %}
 {% set rhel8_available = true %}
 {% set amzn2_available = true %}
+{% set deb9_available = false %}
+{% set u1604_available = false %}
 {%- else %}
 {% set rhel8_available = false %}
 {% set amzn2_available = false %}
@@ -58,6 +60,8 @@ create_dflt_providers:
           location: us-west-2
           minion:
             master: {{master_fqdn}}
+            use_superseded: module.run
+            log: trace
           grains:
             role_type: auto-pack
           id: 'use-instance-role-credentials'
@@ -97,10 +101,11 @@ create_dflt_profiles:
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
 {%- if build_py3 %}
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3003.4
 {%- else %}
-          script_args: stable
+          script_args: stable 3003.4
 {%- endif %}
+{%- if deb9_available %}
         svc-builder-debian9{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f73b3e4b0b0a67ac
@@ -119,7 +124,8 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3004.2
+{%- endif %}
         svc-builder-u2004arm64{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0515006d8fd69b0a3
@@ -138,7 +144,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3004.2
         svc-builder-u2004{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0adf3a90b056c3b35
@@ -157,7 +163,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3004.2
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0d5f916f52836397d
@@ -176,7 +182,8 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3004.2
+{%- if u1604_available %}
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0f7157f751a882a04
@@ -195,12 +202,13 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3004.2
+{%- endif %}
 {%- if build_py3 %}
   {%- if rhel8_available %}
         svc-builder-cent8{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
-          image: ami-02b343d2e3ea1980c
+          image: ami-0e276d8db57b11884
           size: c5.xlarge
           private_key: /srv/salt/auto_setup/{{base_cfg.aws_access_priv_key_name}}
           ssh_interface: private_ips
@@ -216,8 +224,8 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
-  {%- endif %}
+          script_args: -x python3 stable 3003.4
+{%- endif %}
         svc-builder-debian10{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-07aa4b8d0915e6f17
@@ -236,7 +244,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3004.2
         svc-builder-debian11{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-08369ae26c6acf944
@@ -255,7 +263,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable
+          script_args: stable 3004.2
         svc-builder-debian11arm64{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-090d375556899a4cb
@@ -274,7 +282,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable
+          script_args: stable 3004.2
   {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -294,7 +302,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable
+          script_args: -x python3 stable 3003.4
   {%- endif %}
 {%- endif %}
 
@@ -311,8 +319,10 @@ create_dflt_map:
     - text: |
         svc-builder-cent7{{unique_postfix}}:
           - svc-builder-autotest-c7m{{unique_postfix}}
+{%- if deb9_available %}
         svc-builder-debian9{{unique_postfix}}:
           - svc-builder-autotest-d9m{{unique_postfix}}
+{%- endif %}
         svc-builder-u2004{{unique_postfix}}:
           - svc-builder-autotest-u2004m{{unique_postfix}}
 {%- if not "3001" in base_cfg.build_version and not "3002" in base_cfg.build_version and not "3003" in base_cfg.build_version %}
@@ -325,9 +335,11 @@ create_dflt_map:
 {%- endif %}
         svc-builder-u1804{{unique_postfix}}:
           - svc-builder-autotest-u1804m{{unique_postfix}}
-{%- if "3001" in base_cfg.build_version or "3002" in base_cfg.build_version %}
+{%- if "3001" in base_cfg.build_version %}
+{%- if u1604_available %}
         svc-builder-u1604{{unique_postfix}}:
           - svc-builder-autotest-u1604m{{unique_postfix}}
+{%- endif %}
 {%- endif %}
 {%- if build_py3 %}
         svc-builder-debian10{{unique_postfix}}:

@@ -11,7 +11,7 @@
 {% if build_py3 %}
 {% set py_ver = 'py3' %}
 {% set changelog_text_py_ver = ' for Python 3' %}
-{% set debian_supported = ['debian11', 'debian10', 'debian9'] %}
+{% set debian_supported = ['debian11', 'debian10'] %}
 {% else %}
 {% set py_ver = 'py2' %}
 {% set changelog_text_py_ver = ' for Python 2' %}
@@ -116,12 +116,12 @@ adjust_branch_curr_salt_pack_version_{{platform_release}}_directory:
 
 unpack_branch_curr_salt_pack_version_{{platform_release}}_spec:
   module.run:
-    - name: archive.tar
-    - tarfile: {{dir_platform_base}}/spec//{{spec_file_tarball}}
-    - dest: {{dir_platform_base}}/spec
-    - cwd: {{dir_platform_base}}/spec
-    - runas: {{base_cfg.build_runas}}
-    - options: -xvJf
+    - archive.tar:
+      - tarfile: {{dir_platform_base}}/spec//{{spec_file_tarball}}
+      - dest: {{dir_platform_base}}/spec
+      - cwd: {{dir_platform_base}}/spec
+      - runas: {{base_cfg.build_runas}}
+      - options: -xvJf
 
 
 remove_branch_curr_salt_pack_version_{{platform_release}}_changelog:
@@ -158,13 +158,13 @@ update_branch_curr_salt_pack_version_{{platform_release}}_changelog:
 
 pack_branch_curr_salt_pack_version_{{platform_release}}_spec:
    module.run:
-     - name: archive.tar
-     - tarfile: {{spec_file_tarball}}
-     - dest: {{dir_platform_base}}/spec
-     - sources: debian
-     - cwd: {{dir_platform_base}}/spec
-     - runas: {{base_cfg.build_runas}}
-     - options: -cvJf
+     - archive.tar:
+       - tarfile: {{spec_file_tarball}}
+       - dest: {{dir_platform_base}}/spec
+       - sources: debian
+       - cwd: {{dir_platform_base}}/spec
+       - runas: {{base_cfg.build_runas}}
+       - options: -cvJf
 
 
 cleanup_pack_branch_curr_salt_pack_version_{{platform_release}}_spec:

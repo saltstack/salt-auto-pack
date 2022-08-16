@@ -4,7 +4,6 @@ remove_any_salt_target_platforms:
   file.absent:
     - name: /srv/salt/pkg/salt/{{base_cfg.build_number_uscore}}
 
-
 ## finally setup salt-pack files on master, noting auto_setup should not get overwritten
 setup_salt_pack_master_base:
   cmd.run:

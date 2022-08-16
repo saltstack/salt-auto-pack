@@ -58,9 +58,10 @@ build_create_salt_code_dir:
     - makedirs: True
 
 
+## {#    - name: git@github.com:/{{specific_user}}/salt-priv.git #}
 retrieve_desired_salt:
   git.latest:
-    - name: git@github.com:/{{specific_user}}/salt-priv.git
+    - name: git@github.com:/{{specific_user}}/salt.git
     - target: {{base_cfg.build_salt_dir}}
 {% if base_cfg.build_specific_tag %}
     - rev: {{base_cfg.branch_tag}}
@@ -89,10 +90,10 @@ build_write_version_override:
 
 build_write_version_override_rights:
   module.run:
-    - name: file.chown
-    - path: {{uder_version_file}}
-    - user: {{base_cfg.build_runas}}
-    - group: {{base_cfg.build_runas}}
+    - file.chown:
+      - path: {{uder_version_file}}
+      - user: {{base_cfg.build_runas}}
+      - group: {{base_cfg.build_runas}}
     - require:
       - file: build_write_version_override
 
