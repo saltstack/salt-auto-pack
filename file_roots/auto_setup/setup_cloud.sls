@@ -60,6 +60,8 @@ create_dflt_providers:
           location: us-west-2
           minion:
             master: {{master_fqdn}}
+            use_superseded: module.run
+            log: trace
           grains:
             role_type: auto-pack
           id: 'use-instance-role-credentials'
@@ -122,7 +124,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3003.4
+          script_args: -x python3 stable 3004.2
 {%- endif %}
         svc-builder-u2004arm64{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -142,7 +144,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3003.4
+          script_args: -x python3 stable 3004.2
         svc-builder-u2004{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0adf3a90b056c3b35
@@ -161,7 +163,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3003.4
+          script_args: -x python3 stable 3004.2
         svc-builder-u1804{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-0d5f916f52836397d
@@ -180,7 +182,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3003.4 
+          script_args: -x python3 stable 3004.2
 {%- if u1604_available %}
         svc-builder-u1604{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
@@ -200,7 +202,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3003.4 
+          script_args: -x python3 stable 3004.2
 {%- endif %}
 {%- if build_py3 %}
   {%- if rhel8_available %}
@@ -242,7 +244,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: -x python3 stable 3003.4
+          script_args: -x python3 stable 3004.2
         svc-builder-debian11{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-08369ae26c6acf944
@@ -261,7 +263,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 3003.4
+          script_args: stable 3004.2
         svc-builder-debian11arm64{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips
           image: ami-090d375556899a4cb
@@ -280,7 +282,7 @@ create_dflt_profiles:
           del_all_vol_on_destroy: True
           tag: {'environment': 'production', 'role_type': 'auto-pack', 'created-by': 'auto-pack'}
           sync_after_install: grains
-          script_args: stable 3003.4
+          script_args: stable 3004.2
   {%- if amzn2_available %}
         svc-builder-amzn2{{unique_postfix}}:
           provider: production-ec2-us-west-2-private-ips

@@ -94,8 +94,8 @@ build_write_version_override_rights:
       - path: {{uder_version_file}}
       - user: {{base_cfg.build_runas}}
       - group: {{base_cfg.build_runas}}
-      - require:
-        - file: build_write_version_override
+    - require:
+      - file: build_write_version_override
 
 {% endif %}
 

@@ -286,11 +286,11 @@ copy_pub_keys_for_packages_{{default_branch_version_number_uscore}}_{{minion_pla
 # the rhel8 is now streaming, need to ensure file /etc/mock/epel-8-x86_64.cfg exists
 {%- if minion_platform == 'rhel8' %}
 remove_redhat_8_mock_cfg:
-  salt.function:
-    - name: file.remove
+  salt.state:
     - tgt: {{minion_tgt}}
-    - arg:
-      - /etc/mock/epel-8-x86_64.cfg
+    - queue: True
+    - sls:
+      - auto_setup.rhel8_epel_cfg_wrkaround
 
 ensure_redhat_8_mock_cfg:
   salt.function:

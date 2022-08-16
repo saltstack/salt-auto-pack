@@ -188,8 +188,8 @@ ensure_mode_aws_priv_keys_file:
     - file.set_mode:
       - path: {{aws_access_priv_key_filename}}
       - mode: 0400
-      - require:
-        - file: write_aws_priv_keys_to_file
+    - require:
+      - file: write_aws_priv_keys_to_file
 
 
 {% if pphrase_flag ==  false %}
