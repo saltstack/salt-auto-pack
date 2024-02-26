@@ -1,3 +1,12 @@
+# !!Project is Archived!!
+
+> Salt Project has archived the this repository, and will no longer be updating it. This repository was used for packaging v3005.x and earlier releases of salt ("classic" packaging), which are now EOL.
+>
+> Salt Project now uses [relenv](https://github.com/saltstack/relenv) as part of creating more universal packages, that include a build of Python with other tools, and builds/releases packages via GitHub Action workflows:
+> - https://github.com/saltstack/salt/blob/master/.github/workflows/nightly.yml
+> - https://github.com/saltstack/salt/blob/master/.github/workflows/staging.yml
+> - https://github.com/saltstack/salt/blob/master/.github/workflows/release.yml
+
 # Automation for Salt Package Builder (auto-pack)
 
 Auto-pack is an open-source automation for building Salt packages and its dependencies, creating a repository and then delivering the built products to a results NFS server acting as a final receptical from which the build prodiuct can be obtained, leveraging salt-pack on various Operating Systems, most commonly used Linux platforms, for example: Redhat/CentOS and Debian/Ubuntu families, utilizing Salt states, execution modules and orchestration.
